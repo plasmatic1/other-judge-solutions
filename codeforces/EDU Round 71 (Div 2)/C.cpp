@@ -11,7 +11,7 @@ template <typename K> using us = unordered_set<K>;
 using vi = vec<int>; using vl = vec<ll>; using vpi = vec<pii>; using vpl = vec<pll>;
 // Shorthand Macros
 #define INF 0x3f3f3f3f
-#define LLINF 0x3f3f3f3f3f3f3f3f
+// #define LLINF 0x3f3f3f3f3f3f3f3f
 #define mpr make_pair
 #define pb push_back
 // Shorthand Functions
@@ -36,23 +36,46 @@ template<typename F, typename... R>
 void debug_(F f,R... r){int bc=0;while (bc != 0 || dnms_[di_] != ','){if (dnms_[di_] == '(') {bc++;}else if (dnms_[di_] == ')') {bc--;}cout << dnms_[di_++];}di_++;cout << ": " << f << ",";debug_(r...);}
 #define debug(...) do{dnms_=#__VA_ARGS__+co_,di_=0,debug_(__VA_ARGS__);}while(0)
 
-const int MN = 18 + 1, MS = 1 << 18;
-int n;
-double mat[MN][MN], dp[MN][MS];
+const ll LLINF = 1e16;
+const int MN = 2e5 + 1;
+int n, a, b;
+char ss[MN];
+
+void solve() {
+    ll dp[n + 1][2];
+    // memset(dp, 0x3f, sizeof dp);
+
+    dp[0][0] = b;
+    dp[0][1] = LLINF;
+
+    for (int i = 1; i <= n; i++) {
+        dp[i][0] = dp[i][1] = LLINF;
+
+        if (ss[i] == '0') {
+            dp[i][0] = min(dp[i - 1][0] + a + b, dp[i - 1][1] + (a << 1) + b);
+            dp[i][1] = min(dp[i - 1][1] + a + (b << 1), dp[i - 1][0] + (a << 1) + (b << 1));
+        }
+        else {
+            dp[i][1] = dp[i - 1][1] + a + (b << 1);
+        }
+
+        // debug(i, dp[i][0], dp[i][1]);
+    }
+
+    println(dp[n][0]);
+}
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    scan(n);
-
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            scan(mat[i][j]);
-        }
+    int t; scan(t);
+    while(t--){
+        scan(n,a,b);
+        scan(ss);
+        copy(ss, ss + n, ss + 1);
+        solve();
     }
-
-    
 
     return 0;
 }
