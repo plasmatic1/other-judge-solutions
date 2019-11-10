@@ -56,51 +56,43 @@ string debug_name_(string s, string str_val) {
 #define debug(...) do{dnms_=#__VA_ARGS__+casttostr_,di_=0,debug_(__VA_ARGS__);}while(0)
 #pragma endregion
 
-const int MN = 1e4 + 1;
-int n, q;
-double arr[MN];
-um<double, vi> ids;
-
-int cnt(double x, int l, int r) {
-    vi &v = ids[x];
-    return upper_bound(v.begin(), v.end(), r) - lower_bound(v.begin(), v.end(), l);
-}
-
-int randint(int l, int r) {
-    static mt19937 mt(time(NULL));
-    return uniform_int_distribution<int>(l, r)(mt);
-}
+const int MN = 1e3 + 1;
+int n,
+    stage[MN], cnt[4];
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    scan(n, q);
+    Forinci(1, 3)
+        scan(cnt[i]);
+    
+    scan(n);
 
-    Forinci(1, n) {
-        double x; scan(x);
-        arr[i] = x;
-        ids[arr[i]].pb(i);
-    }
-
-    for (auto it = ids.begin(); it != ids.end(); it++)
-        sort(it->second.begin(), it->second.end());
-
-    while (q--) {
-        int l, r; scan(l, r);
-        int threshold = (r - l + 1) / 2 + 1;
-
-        bool work = false;
-        Fori(0, 30) {
-            // debug(i, l, r, arr[randint(l, r)], cnt(arr[randint(l, r)], l, r));
-            work |= cnt(arr[randint(l, r)], l, r) >= threshold;
+    Fori(0, n)
+        scan(stage[i]);
+    
+    // solve
+    ll tot = 0;
+    Fori(0, n) {
+        int to = -1;
+        Forj(i + 1, n) {
+            if (stage[j] != stage[i] && to == -1) {
+                Forinck(1, 3)
+                    if (k != stage[j] && k != stage[i])
+                        to = k;
+            }
         }
 
-        if (work)
-            println("usable");
-        else
-            println("unusable");
+        if (to == -1) 
+            to = stage[i] == 1 ? 2 : 1;
+        
+        // debug("add", i, to, stage[i], stage[to]);
+        tot += cnt[stage[i]];
+        cnt[to] += cnt[stage[i]];
+        cnt[stage[i]] = 0;
     }
+    println(tot);
 
     return 0;
 }

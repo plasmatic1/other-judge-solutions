@@ -56,51 +56,64 @@ string debug_name_(string s, string str_val) {
 #define debug(...) do{dnms_=#__VA_ARGS__+casttostr_,di_=0,debug_(__VA_ARGS__);}while(0)
 #pragma endregion
 
-const int MN = 1e4 + 1;
-int n, q;
-double arr[MN];
-um<double, vi> ids;
+const int MN = 2e5 + 10;
+const ll MOD = 1e9 + 7;
+int n,
+    cnt[3], chSums[2][MN];
+ll fact[MN];
 
-int cnt(double x, int l, int r) {
-    vi &v = ids[x];
-    return upper_bound(v.begin(), v.end(), r) - lower_bound(v.begin(), v.end(), l);
+ll fpow(ll x, ll y) {
+    if (y < 0) return 0LL;
+    if (y <= 0) return 1LL;
+    return (((y & 1) ? x : 1LL) * fpow((x * x) % MOD, y >> 1)) % MOD;
 }
-
-int randint(int l, int r) {
-    static mt19937 mt(time(NULL));
-    return uniform_int_distribution<int>(l, r)(mt);
+ll divMod(ll x, ll y) { return (x * fpow(y, MOD - 2)) % MOD; }
+ll choose(ll n, ll k) { 
+    if (k > n) return 0LL;
+    return divMod(fact[n], (fact[k] * fact[n - k]) % MOD); 
 }
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    scan(n, q);
+    fact[0] = 1;
+    Fori(1, MN)
+        fact[i] = (fact[i - 1] * i) % MOD;
+    
+    scan(n);
 
-    Forinci(1, n) {
-        double x; scan(x);
-        arr[i] = x;
-        ids[arr[i]].pb(i);
-    }
+    Fori(0, n) {
+        int a, b;
+        scan(a, b);
 
-    for (auto it = ids.begin(); it != ids.end(); it++)
-        sort(it->second.begin(), it->second.end());
-
-    while (q--) {
-        int l, r; scan(l, r);
-        int threshold = (r - l + 1) / 2 + 1;
-
-        bool work = false;
-        Fori(0, 30) {
-            // debug(i, l, r, arr[randint(l, r)], cnt(arr[randint(l, r)], l, r));
-            work |= cnt(arr[randint(l, r)], l, r) >= threshold;
-        }
-
-        if (work)
-            println("usable");
+        if ((a == 1 && b == 2) || (a == 2 && b == 1))
+            cnt[0]++;
+        else if ((a == 1 && b == 3) || (a == 3 && b == 1))
+            cnt[1]++;
         else
-            println("unusable");
+            cnt[2]++;
     }
+
+    // debugArray(cnt, 3);
+
+    // precompute chSums
+    Fori(0, 2) {
+        Forj(1, MN) {
+            chSums[i][j] = (chSums[i][j - 1] + choose(cnt[i], j)) % MOD;
+        }
+    }
+
+    ll tot = 0;
+    Forinci(0, cnt[2]) {
+        ll addc = 1;
+        addc = (addc * choose(cnt[2], i)) % MOD;
+        addc = (addc * (chSums[0][cnt[0]] - chSums[0][i])) % MOD;
+        addc = (addc * (chSums[1][cnt[1]] - chSums[1][i])) % MOD;
+
+        tot = (tot + addc) % MOD;
+    }
+    println((tot + MOD) % MOD);
 
     return 0;
 }
