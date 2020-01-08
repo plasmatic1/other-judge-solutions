@@ -58,7 +58,7 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #pragma endregion
 
 vl factor(ll x) {
-    ld sqx = sqrt(x);
+    ld sqx = sqrt(x) + 100;
     vl ret;
     repi(1, sqx + 1) {
         if (x % i == 0) {
@@ -73,21 +73,20 @@ vl factor(ll x) {
 }
 
 ll gcd(ll a, ll b) {
-    return b ? a : gcd(b, a % b);
+    return b ? gcd(b, a % b) : a;
 }
 
+using pll = pair<ll, ll>;
 const int MN = 1001, MF = 7001; // Max factors
 int n,
-    dp[MN][MF];
+    par[MN][MF];
+pll dp[MN][MF];
 ll k;
 struct p {
-    int i; ll v;
+    int i; ll v, gv;
     Cmplt(p) { return v < o.v; }
 } num[MN];
-struct {
-    int i, j;
-} par[MN][MF];
-vl kfactors, factors[MF]; // factors for k, factors for the nums
+vl kfactors; // factors for k
 
 int main(){
     ios_base::sync_with_stdio(false);
@@ -99,74 +98,63 @@ int main(){
     int fsz = kfactors.size(); 
     assert(fsz < MF);
 
-    // db(kfactors); dbln;
-
-    factors[0] = {1};
-    repi(1, fsz) {
-        repj(0, fsz)
-            if (kfactors[i] % kfactors[j] == 0)
-                factors[i].pb(j);
-        reverse(factors[i].begin(), factors[i].end());
+    // input nums
+    repi(1, n + 1) {
+        scan(num[i].v);
+        num[i].gv = gcd(num[i].v, k);
+        num[i].i = i;
     }
 
     // edge case
     if (k == 1) {
-        print("1\n1\n");
+        sort(num + 1, num + n + 1);
+        println(1);
+        println(num[1].i);
         return 0;
     }
 
-    // input nums
-    repi(1, n + 1) {
-        scan(num[i].v);
-        // num[i].v = gcd(num[i].v, k);
-        num[i].i = i;
-    }
-    sort(num + 1, num + n + 1);
-
     // dp
-    memset(dp, 0x3f, sizeof dp);
+    pll invalid = mpr(LLINF, LLINF);
+    dp[0][0] = {0LL, 0LL};
+    repi(1, fsz)
+        dp[0][i] = invalid;
     repi(1, n + 1) { 
-        dp[0][0] = 0LL;
         repj(1, fsz) {
-            mina(dp[i][j], dp[i - 1][j]);
-            par[i][j] = {i - 1, j};
-            for (auto from : factors[j]) {
-                ll req = kfactors[j] / kfactors[from];
-                if (req > num[i].v) break;
+            dp[i][j] = min(invalid, dp[i - 1][j]);
+            par[i][j] = j;
 
-                if (num[i].v % req == 0) {
-                    // dblb("tryjump"); db(i); db(j); db(l); db(factors[j]); db(factors[l]); dbln;
-                    int alt = dp[i - 1][from] + 1;
-                    if (alt < dp[i][j]) {
-                        dp[i][j] = alt;
-                        par[i][j] = {i - 1, from};
-                    }
-                }
+            ll from = kfactors[j] / gcd(num[i].gv, kfactors[j]);
+            int fromid = lower_bound(all(kfactors), from) - kfactors.begin();
+
+            auto alt = dp[i - 1][fromid];
+            alt.first++;
+            alt.second += num[i].v;
+
+            if (alt < dp[i][j]) {
+                dp[i][j] = alt;
+                par[i][j] = fromid;
             }
             
-            // db(i); db(j); db(factors[j]); db(dp[i][j]); dbln;
+            // db(i); db(j); db(kfactors[j]); db(num[i].gv); db(gcd(num[i].gv, kfactors[j])); db(from); db(fromid); db(dp[i-1][fromid].first); db(dp[i-1][j].first); db(dp[i][j].first); dbln;
         }
     }
 
-    if (dp[n][fsz - 1] == INF) {
+    if (dp[n][fsz - 1].first == LLINF) {
         println(-1);
         return 0;
     }
 
     // output and backtrack
-    println(dp[n][fsz - 1]);
+    println(dp[n][fsz - 1].first);
 
     vi seq;
     int ci = n, cj = fsz - 1;
     while (ci > 0 && cj > 0) {
         auto cpar = par[ci][cj];
-        // db(ci); db(cj); dbln;
-
-        if (cj > cpar.j)
+        if (cj > cpar)
             seq.pb(num[ci].i);
 
-        ci = cpar.i;
-        cj = cpar.j;
+        ci--; cj = cpar;
     }
     sort(seq.begin(), seq.end());
     for (auto x : seq)
