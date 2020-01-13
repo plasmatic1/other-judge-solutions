@@ -57,43 +57,32 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+ll n;
 
-umap<int, int> stacks;
-
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
-
-
+ll countBelow(ll x) {
+    return x - ((x / 3) + (x / 5) - (x / 15));
 }
 
 int main(){
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+//    ios_base::sync_with_stdio(false);
+//    cin.tie(NULL);
+
+    freopen("moobuzz.in", "r", stdin);
+    freopen("moobuzz.out", "w", stdout);
 
     scan(n);
-    repi(0, n) 
-        scan(perm[i]);
 
-    // bsearch
-    int l = 1, r = n + 1;
+    ll l = n, r = LLINF;
     while (l + 1 < r) {
-        int mid = (l + r) >> 1;
+        ll mid = (l + r) >> 1;
 
-        if (sim(mid))
-            l = mid;
-        else
+        if (countBelow(mid) >= n)
             r = mid;
+        else
+            l = mid;
     }
 
-    // output
-    db(l); db(r); dbln;
-    println(l);
+    println(r);
 
     return 0;
 }

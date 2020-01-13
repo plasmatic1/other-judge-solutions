@@ -57,43 +57,11 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
-
-umap<int, int> stacks;
-
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
-
-
-}
+// euler tour tree
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
-
-    // bsearch
-    int l = 1, r = n + 1;
-    while (l + 1 < r) {
-        int mid = (l + r) >> 1;
-
-        if (sim(mid))
-            l = mid;
-        else
-            r = mid;
-    }
-
-    // output
-    db(l); db(r); dbln;
-    println(l);
 
     return 0;
 }

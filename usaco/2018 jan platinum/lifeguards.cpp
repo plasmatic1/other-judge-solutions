@@ -57,43 +57,71 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+struct seg {
+	int l, r;
+	Cmplt(seg) {
+		return r == o.r ? l > o.l : r < o.r;
+	}
+};
 
-umap<int, int> stacks;
-
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
-
-
-}
+const int MN = 1e5 + 1, MK = 101;
+int n, k,
+	dp[MN][MK];
+seg segs[MN];
 
 int main(){
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
 
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
+	scan(n, k);
+	repi(1, n + 1) {
+		scn(int, l, r);
+		segs[i] = {l, r};
+	}
+	sort(segs + 1, segs + n + 1);
 
-    // bsearch
-    int l = 1, r = n + 1;
-    while (l + 1 < r) {
-        int mid = (l + r) >> 1;
+	int mn = INF;
+	vec<seg> tmp;
+	reprev(i, n, 0) {
+		// db(i); db(mn); db(segs[i].l); db(segs[i].r); dbln;
+		if (segs[i].l < mn)
+			tmp.pb(segs[i]);
+		mina(mn, (int)segs[i].l);
+	}
+	
+	k -= n - tmp.size();
+	maxa(k, 0);
+	n = tmp.size();
+	copy(all(tmp), segs + 1);
+	sort(segs + 1, segs + n + 1);
 
-        if (sim(mid))
-            l = mid;
-        else
-            r = mid;
-    }
+	// db(n); db(k); dbln;
 
-    // output
-    db(l); db(r); dbln;
-    println(l);
+	// dp
+	repi(0, n + 1)
+		fill(dp[i], dp[i] + k + 1, -LLINF);
+	dp[0][0] = 0;
+	repi(1, n + 1) {
+		repj(0, k + 1) {
+			int dec = 0;
+			reprev(l, i - 1, -1) {
+				if (j - dec < 0) break;
+				// dblb("trans"); db(i); db(j); db(l); db(j-dec); db(dec); dbln;
+				maxa(dp[i][j], dp[l][j - dec] + segs[i].r - max(segs[l].r, segs[i].l));
+				dec++;
+			}
 
-    return 0;
+			// db(i); db(j); db(dp[i][j]); dbln;
+		}        
+	}
+
+	int best = 0, dec = 0;
+	reprev(i, n, -1) {
+		if (k - dec < 0) break;
+		maxa(best, dp[i][k - dec]);
+		dec++;
+	}
+	println(best);
+
+	return 0;
 }

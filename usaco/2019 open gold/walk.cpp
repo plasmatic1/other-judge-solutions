@@ -50,50 +50,27 @@ template<typename F, typename... R> inline void println(F f,R... r){cout<<f<<" "
 inline void print(){}
 template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(r...);}
 // Debugging
-#define db(x) cout << (#x) << ": " << x << ", "
+#define db(x) cout << (#x) << ": " << (x) << ", "
 #define dblb(s) cout << "[" << s << "] "
 #define dbbin(x, n) cout << (#x) << ": " << bitset<n>(x) << ", "
 #define dbarr(x, n) cout << (#x) << ": " << arrayStr((x), (n)) << ", "
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+const ll A = 2019201913, B = 2019201949, MD = 2019201997;
+const int MN = 7501;
+int n, k;
 
-umap<int, int> stacks;
-
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
-
-
+ll f(ll a, ll b) {
+    return (a * A + b * B) % MD;
 }
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
-
-    // bsearch
-    int l = 1, r = n + 1;
-    while (l + 1 < r) {
-        int mid = (l + r) >> 1;
-
-        if (sim(mid))
-            l = mid;
-        else
-            r = mid;
-    }
-
-    // output
-    db(l); db(r); dbln;
-    println(l);
+    scan(n, k);
+    println(f(k - 1, n));
 
     return 0;
 }

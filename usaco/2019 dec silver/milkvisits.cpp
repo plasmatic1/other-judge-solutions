@@ -57,43 +57,85 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+const int MN = 1e5 + 1, LG = 18;
+int n, q, 
+    cnt[2][MN], tb[LG][MN], lv[MN];
+bool type[MN];
+vi g[MN];
 
-umap<int, int> stacks;
+void dfs(int c, int p, int plv, int pcnt1, int pcnt2) {
+    lv[c] = plv + 1;
+    cnt[0][c] = pcnt1 + !type[c];
+    cnt[1][c] = pcnt2 + type[c];
+    tb[0][c] = p;
 
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
+    for (int adj : g[c])
+        if (adj ^ p)
+            dfs(adj, c, lv[c], cnt[0][c], cnt[1][c]);
+}
 
+void build() {
+    repi(1, LG) {
+        repj(1, n + 1) {
+            tb[i][j] = tb[i - 1][j] == -1 ? -1 : tb[i - 1][tb[i - 1][j]];
+        }
+    }
+}
 
+int lca(int a, int b) {
+    if (a == b) return a;
+    if (lv[a] > lv[b]) swap(a, b);
+    
+    int delta = lv[b] - lv[a];
+    repi(0, LG)
+        if ((delta >> i) & 1)
+            b = tb[i][b];
+    if (a == b) return a;
+    
+    reprev(i, LG - 1, -1) {
+        if (tb[i][a] != tb[i][b]) {
+            a = tb[i][a];
+            b = tb[i][b];
+        }
+    }
+
+    return tb[0][a];
 }
 
 int main(){
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+//    ios_base::sync_with_stdio(false);
+//    cin.tie(NULL);
 
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
-
-    // bsearch
-    int l = 1, r = n + 1;
-    while (l + 1 < r) {
-        int mid = (l + r) >> 1;
-
-        if (sim(mid))
-            l = mid;
-        else
-            r = mid;
+    freopen("milkvisits.in", "r", stdin);
+    freopen("milkvisits.out", "w", stdout);
+    
+    string s;
+    scan(n, q, s);
+    repi(0, n)
+        type[i + 1] = s[i] == 'H';
+    repi(1, n) {
+        int a, b;
+        scan(a, b);
+        g[a].pb(b);
+        g[b].pb(a);
     }
 
-    // output
-    db(l); db(r); dbln;
-    println(l);
+    // sptable
+    dfs(1, -1, -1, 0, 0);
+    build();
+
+    // queries
+    while (q--) {
+        int a, b, t; char c;
+        scan(a, b, c);
+        t = c == 'H';
+
+        int lcav = lca(a, b);
+        // db(a); db(b); db(lcav); db(cnt[t][a]); db(cnt[t][b]); db(cnt[t][lcav]); dbln;
+        int ccnt = cnt[t][a] + cnt[t][b] + (type[lcav] == t) - 2 * cnt[t][lcav];
+        print(ccnt > 0);
+    }
+    print('\n');
 
     return 0;
 }

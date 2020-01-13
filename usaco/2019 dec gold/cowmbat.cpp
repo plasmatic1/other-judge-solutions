@@ -57,43 +57,56 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+const int MN = 1e5 + 1, MM = 26;
+int n, m, k,
+    dp[MN], pmax[MM][MN], dis[MM][MM], pfx[MM][MN]; // dp array, prefix max for each letter, distance from letter to letter, prefix sum for each letter
+string s;
 
-umap<int, int> stacks;
+int let(char c) { return c - 'a'; }
 
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
-
-
+int trans(int from, int to, int let) {
+    return dp[from] + pfx[let][to] - pfx[let][from];
 }
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
+    scan(n, m, k, s);
+    s = " " + s;
 
-    // bsearch
-    int l = 1, r = n + 1;
-    while (l + 1 < r) {
-        int mid = (l + r) >> 1;
+    // floyd warshall man
+    repi(0, m) 
+        repj(0, m) 
+            scan(dis[i][j]);
+    repk(0, m)
+        repi(0, m) 
+            repj(0, m) 
+                mina(dis[i][j], dis[i][k] + dis[k][j]);
+    
+    // compute pfx sum
+    repi(0, m) 
+        repj(1, n + 1) 
+            pfx[i][j] = pfx[i][j - 1] + dis[let(s[j])][i];
+    
+    // do the dee pee pee
+    memset(dp, 0x3f, sizeof dp);
+    dp[0] = 0;
+    repi(k, n + 1) {
+        // add i-k to prefix max
+        if (i - k > 0) {
+            repj(0, m) {
+                int prev = pmax[j][i - k - 1];
+                pmax[j][i - k] = trans(i - k, i, j) < trans(prev, i, j) ? i - k : prev;
+            }
+        }
 
-        if (sim(mid))
-            l = mid;
-        else
-            r = mid;
+        // transition from best
+        repj(0, m)
+            mina(dp[i], trans(pmax[j][i - k], i, j));
     }
 
-    // output
-    db(l); db(r); dbln;
-    println(l);
+    println(dp[n]);
 
     return 0;
 }

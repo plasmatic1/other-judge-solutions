@@ -1,3 +1,6 @@
+// What the hell is this???
+// ;)
+
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -57,43 +60,103 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+const int MN = 1e5 + 1, LG = 17;
+int Q, N = 0;
 
-umap<int, int> stacks;
+// lca stuff
+int par[LG][MN], dis[MN];
 
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
+int lca(int v, int w) {
+	if (v == w) return v;
+	if (dis[v] > dis[w]) swap(v, w);
+	int delta = dis[w] - dis[v];
+	repi(0, LG)
+		if ((delta >> i) & 1)
+			w = par[i][w];
+	if (v == w) return v;
+	reprev(i, LG - 1, -1) {
+		if (par[i][v] != par[i][w]) {
+			v = par[i][v];
+			w = par[i][w];
+		}
+	}
+	return par[0][v];
+}
 
+int qdis(int v, int w) {
+	return dis[v] + dis[w] - 2 * dis[lca(v, w)];
+}
 
+// dsu and root stuff
+int dsu[MN], rootIdx[MN];
+struct Root {
+	int rt, A, B;
+};
+vec<Root> roots;
+
+void initDsu() { iota(dsu, dsu + MN, 0); }
+int rt(int x) { return x == dsu[x] ? x : dsu[x] = rt(dsu[x]); }
+void unite(int x, int y) {
+	int rx = rt(x), ry = rt(y);
+	dsu[max(rx, ry)] = min(rx, ry);
 }
 
 int main(){
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
 
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
+	// init
+	memset(par, -1, sizeof par);
+	initDsu();
 
-    // bsearch
-    int l = 1, r = n + 1;
-    while (l + 1 < r) {
-        int mid = (l + r) >> 1;
+	scan(Q);
 
-        if (sim(mid))
-            l = mid;
-        else
-            r = mid;
-    }
+	while (Q--) {
+		char T; int V;
+		scan(T, V);
 
-    // output
-    db(l); db(r); dbln;
-    println(l);
+		if (T == 'B') {
+			N++;
 
-    return 0;
+			if (V == -1) {
+				rootIdx[N] = roots.size();
+				roots.pb({N, N, N});
+			}
+			else {
+				// lca
+				par[0][N] = V;
+				dis[N] = dis[V] + 1;
+
+				for (int i = 1; i < LG; i++) {
+					int pp = par[i - 1][N];
+					par[i][N] = pp == -1 ? -1 : par[i - 1][pp];
+				}
+
+				// dsu stuff
+				unite(V, N);
+
+				// update root stuff
+				auto &root = roots[rootIdx[rt(V)]];
+				int dia = qdis(root.A, root.B), da = qdis(N, root.A), db = qdis(N, root.B);
+				// db(N); db(dia); db(root.A); db(root.B); db(da); db(db); dbln;
+				if (da >= db && da > dia) {
+					root.B = N;
+					dia = da;
+				}
+				else if (db > da && db > dia) {
+					root.A = N;
+					dia = db;
+				}
+			}
+		}
+		else {
+			auto root = roots[rootIdx[rt(V)]];
+			int ans = max(qdis(root.A, V), qdis(root.B, V));
+			println(ans);
+
+			// db(V); db(root.rt); db(root.A); db(root.B); db(qdis(root.A, V)); db(qdis(root.B, V)); dbln;
+		}
+	}
+
+	return 0;
 }

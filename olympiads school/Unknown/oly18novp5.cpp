@@ -57,43 +57,42 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+const int MN = 1e5 + 10;
+int n, k,
+    arr[MN];
+deque<int> Q;
+ll dp[MN], pfx[MN];
 
-umap<int, int> stacks;
-
-bool sim(int x) {
-    vi comp;
-    repi(0, x) comp.pb(x);
-    sort(comp.begin(), comp.end());
-    repi(0, x) tperm[i] = lower_bound(comp.begin(), comp.end(), tperm[i]) - comp.begin() + 1;
-
-
+ll f(int st) {
+    return dp[st] + pfx[n + 1] - pfx[st + 1];
 }
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
+    scan(n, k);
 
-    // bsearch
-    int l = 1, r = n + 1;
-    while (l + 1 < r) {
-        int mid = (l + r) >> 1;
+    repi(2, n + 2)
+        scan(arr[i]);
+    
+    repi(2, n + 2)
+        pfx[i] = pfx[i - 1] + arr[i];
+    
+    Q.pb(0); Q.pb(1);
+    repi(2, n + 2) {
+        while (!Q.empty() && Q[0] < i - k - 1)
+            Q.pop_front();
+        
+        dp[i] = max(dp[i - 1], dp[Q[0]] + pfx[i] - pfx[Q[0] + 1]);
+        // db(i); db(Q[0]); db(dp[Q[0]]); db(pfx[i] - pfx[Q[0] + 1]); db(dp[i]); db(f(i)); db(arr[i]); dbln;
 
-        if (sim(mid))
-            l = mid;
-        else
-            r = mid;
+        while (!Q.empty() && f(Q.back()) <= f(i))
+            Q.pop_back();
+        Q.pb(i);
     }
 
-    // output
-    db(l); db(r); dbln;
-    println(l);
+    println(dp[n + 1]);
 
     return 0;
 }
