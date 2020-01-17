@@ -1,6 +1,6 @@
 ## USACO Directory
 
-Note that some solutions use stdin/stdout while others use the USACO file input/output.  This is because some were submitted on another judge while others were submitted directly on the USACO website.
+Note that some solutions use stdin/stdout while others use the USACO file input/output.  Changing the input format is simple: simply add two freopen calls to the beginning of `int main()`.
 
 ### Incomplete Problems List
 
