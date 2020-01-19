@@ -57,11 +57,109 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-// euler tour tree
+const int MN = 1e5 + 1, MET = 2e5 + 1;
+int n, q,
+    val[MN];
+vec<int> g[MN];
+
+// ett
+int tour_id = 0, 
+    first[MN], last[MN];
+void dfs_ett(int c, int p) {
+    first[c] = ++tour_id;
+    for (int to : g[c])
+        if (to ^ p)
+            dfs_ett(to, c);
+    last[c] = ++tour_id;
+}
+
+// lca
+const int LG = 17;
+int dis[MN], par[LG][MN];
+void dfs_lca(int c, int p, int cdis) {
+    dis[c] = cdis;
+    par[0][c] = p;
+    for (int to : g[c])
+        if (to ^ p)
+            dfs_lca(to, c, cdis + 1);
+}
+void make_lca() {
+    repi(1, LG) {
+        repj(1, n + 1) {
+            int pp = par[i - 1][j];
+            par[i][j] = pp == -1 ? -1 : par[i - 1][pp];
+        }
+    }
+}
+int lca(int a, int b) {
+    if (a == b) return a;
+    if (dis[a] > dis[b]) swap(a, b);
+    int delta = dis[b] - dis[a];
+    repi(0, LG)
+        if ((delta >> i) & 1)
+            b = par[i][b];
+    if (a == b) return b;
+    reprev(i, LG - 1, -1) {
+        if (par[i][a] != par[i][b]) {
+            a = par[i][a];
+            b = par[i][b];
+        }
+    }
+    return par[0][a];
+}
+
+// bit
+int bit[MET];
+void add(int x, int v) {
+    for (; x < MET; x += x & -x)
+        bit[x] ^= v;
+}
+int sum(int x) {
+    int sum = 0;
+    for (; x; x -= x & -x)
+        sum ^= bit[x];
+    return sum;
+}
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
+
+    freopen("cowland.in", "r", stdin);
+    freopen("cowland.out", "w", stdout);
+
+    scan(n, q);
+    repi(1, n + 1)
+        scan(val[i]);
+    repi(1, n) {
+        scn(int, a, b);
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+
+    // init
+    dfs_ett(1, -1);
+    repi(1, n + 1) {
+        add(first[i], val[i]);
+        add(last[i], val[i]);
+    }
+    dfs_lca(1, -1, 0);
+    make_lca();
+
+    // queries
+    while (q--) {
+        scn(int, T, a, b);
+        if (T == 1) {
+            add(first[a], val[a] ^ b);
+            add(last[a], val[a] ^ b);
+            val[a] = b;
+        }
+        else {
+            int lcav = lca(a, b), 
+                ans = sum(first[a]) ^ sum(first[b]) ^ val[lcav];
+            println(ans);
+        }
+    }
 
     return 0;
 }
