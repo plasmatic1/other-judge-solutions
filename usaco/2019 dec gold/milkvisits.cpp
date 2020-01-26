@@ -57,101 +57,123 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
-int n,
-    perm[MN], tperm[MN];
+struct Qu {
+    int i, a, b;
+};
 
-// binsearch stuff
-vi comp;
-vec<vec<int>> stacks;
-int stackMap[MN];
+const int MN = 1e5 + 1, MN2 = MN * 2, LG = 17;
+int n, q,
+    ans[MN], val[MN];
+vec<Qu> qus[MN];
+vec<int> g[MN], vals[MN];
 
-bool sim(int x) {
-    // init
-    comp.clear();
-    stacks.clear();
-    memset(stackMap, -1, sizeof stackMap);
-
-    // rank compress
-    repi(0, x)
-        comp.pb(perm[i]);
-    sort(comp.begin(), comp.end());
-    repi(0, x)
-        tperm[i] = lower_bound(comp.begin(), comp.end(), perm[i]) - comp.begin() + 1;
-
-    // actually do stack stuff
-    int nxt = 1, stacksptr = 0;
-    repi(0, x) {
-        int val = tperm[i];
-
-        // db(x); db(i); db(val); db(nxt); dbln;
-        // db(stacks); db(stacksptr); dbln;
-
-        // if nxt
-        if (val == nxt)
-            nxt++;
-        else {
-            // otherwise try and push it onto an existing stack
-            if (stackMap[val + 1] != -1) {
-                int idx = stackMap[val + 1]; 
-                stackMap[val + 1] = -1;
-                stacks[idx].pb(val);
-                stackMap[val] = idx;
-            }
-            // finally make new stack if impossible
-            else {
-                stackMap[val] = stacks.size();
-                stacks.pb({val});
-            }
-        }
-
-        // try and pop things from start 
-        while (stacksptr < stacks.size() && stacks[stacksptr].back() == nxt) {
-            vec<int> &cstack = stacks[stacksptr];
-            stackMap[cstack.back()] = -1;
-            cstack.pop_back();
-            if (!cstack.empty())
-                stackMap[cstack.back()] = stacksptr;
-            else
-                stacksptr++;
-
-            nxt++;
+// lca 
+int lv[MN], tb[LG][MN];
+void dfslca(int c, int p) {
+    lv[c] = p == -1 ? 0 : lv[p] + 1;
+    tb[0][c] = p;
+    for (int to : g[c])
+        if (to ^ p)
+            dfslca(to, c);
+}
+void makelca() {
+    repi(1, LG) {
+        repj(1, n + 1) {
+            int pp = tb[i - 1][j];
+            tb[i][j] = pp == -1 ? -1 : tb[i - 1][pp];
         }
     }
+}
+int lca(int a, int b) {
+    if (a == b) return a;
+    if (lv[a] > lv[b]) swap(a, b);
+    int delta = lv[b] - lv[a];
+    repi(0, LG)
+        if ((delta >> i) & 1)
+            b = tb[i][b];
+    if (a == b) return a;
+    reprev(i, LG - 1, -1) 
+        if (tb[i][a] != tb[i][b])
+            a = tb[i][a], b = tb[i][b];
+    return tb[0][a];
+}
 
-    return nxt == x + 1; // true only if all plates are done
+// ETT
+int tourIdx = 0,
+    first[MN], last[MN], bit[MN2];
+void dfsett(int c, int p) {
+    first[c] = ++tourIdx;
+    for (int to : g[c])
+        if (to ^ p)
+            dfsett(to, c);
+    last[c] = ++tourIdx;
+}
+void add(int x, int v) {
+    for (; x < MN2; x += x & -x)
+        bit[x] += v;
+}
+int sum(int x) {
+    int sum = 0;
+    for (; x; x -= x & -x)
+        sum += bit[x];
+    return sum;
+}
+int qpath(int a, int b, int clr) {
+    int lcav = lca(a, b);
+    // db(a); db(b); db(lcav); dbln;
+    return sum(first[a]) + sum(first[b]) - 2 * sum(first[lcav]) + (val[lcav] == clr);
+}
+int bottom(int a, int b) { // gets the bottom node out of two nodes (in a single edge)
+    return lv[a] > lv[b] ? a : b;
 }
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    // freopen("dishes.in", "r", stdin);
-    // freopen("dishes.out", "w", stdout);
-
-    scan(n);
-    repi(0, n) 
-        scan(perm[i]);
-
-    // bsearch
-    int l = 1, r = n, ans;
-    // int its=10;
-    while (l <= r) {
-        int mid = (l + r) >> 1;
-        bool res = sim(mid);
-        // assert(its--);
-        // db(l); db(r); db(mid); db(res); dbln;
-
-        if (res)
-            l = mid + 1, ans = mid;
-        else
-            r = mid - 1;
+    // input
+    scan(n, q);
+    repi(1, n + 1) {
+        scn(int, c);
+        vals[c].pb(i);
+        val[i] = c;
+    }
+    repi(0, n - 1) {
+        scn(int, a, b);
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+    repi(0, q) {
+        scn(int, a, b, c);
+        qus[c].pb({i, a, b});
     }
 
-    // output
-    println(ans);
-    if (n == 500)
-        db(sim(251)), dbln;
+    // build data structure
+    memset(tb, -1, sizeof tb);
+    dfslca(1, -1);
+    makelca();
+    dfsett(1, -1);
+
+    // offline
+    repi(1, n + 1) {
+        for (auto v : vals[i]) {
+            add(first[v], 1);
+            add(last[v], -1);
+        }
+
+        for (auto qu : qus[i])
+            ans[qu.i] = qpath(qu.a, qu.b, i) > 0;
+        
+        for (auto v : vals[i]) {
+            add(first[v], -1);
+            add(last[v], 1);
+        }
+    }
+
+    // print
+    repi(0, q)
+        print(ans[i]);
+    print('\n');
 
     return 0;
 }

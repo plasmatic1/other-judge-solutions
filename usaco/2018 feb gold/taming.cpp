@@ -57,101 +57,51 @@ template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(
 #define dbln cout << endl;
 #pragma endregion
 
-const int MN = 1e5 + 1;
+/*
+state
+
+i -> index
+j -> days since breakout
+k -> number of breakouts
+*/
+
+const int MN = 101;
 int n,
-    perm[MN], tperm[MN];
-
-// binsearch stuff
-vi comp;
-vec<vec<int>> stacks;
-int stackMap[MN];
-
-bool sim(int x) {
-    // init
-    comp.clear();
-    stacks.clear();
-    memset(stackMap, -1, sizeof stackMap);
-
-    // rank compress
-    repi(0, x)
-        comp.pb(perm[i]);
-    sort(comp.begin(), comp.end());
-    repi(0, x)
-        tperm[i] = lower_bound(comp.begin(), comp.end(), perm[i]) - comp.begin() + 1;
-
-    // actually do stack stuff
-    int nxt = 1, stacksptr = 0;
-    repi(0, x) {
-        int val = tperm[i];
-
-        // db(x); db(i); db(val); db(nxt); dbln;
-        // db(stacks); db(stacksptr); dbln;
-
-        // if nxt
-        if (val == nxt)
-            nxt++;
-        else {
-            // otherwise try and push it onto an existing stack
-            if (stackMap[val + 1] != -1) {
-                int idx = stackMap[val + 1]; 
-                stackMap[val + 1] = -1;
-                stacks[idx].pb(val);
-                stackMap[val] = idx;
-            }
-            // finally make new stack if impossible
-            else {
-                stackMap[val] = stacks.size();
-                stacks.pb({val});
-            }
-        }
-
-        // try and pop things from start 
-        while (stacksptr < stacks.size() && stacks[stacksptr].back() == nxt) {
-            vec<int> &cstack = stacks[stacksptr];
-            stackMap[cstack.back()] = -1;
-            cstack.pop_back();
-            if (!cstack.empty())
-                stackMap[cstack.back()] = stacksptr;
-            else
-                stacksptr++;
-
-            nxt++;
-        }
-    }
-
-    return nxt == x + 1; // true only if all plates are done
-}
+    val[MN], dp[MN][MN][MN];
 
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    // freopen("dishes.in", "r", stdin);
-    // freopen("dishes.out", "w", stdout);
-
+    // input
     scan(n);
-    repi(0, n) 
-        scan(perm[i]);
-
-    // bsearch
-    int l = 1, r = n, ans;
-    // int its=10;
-    while (l <= r) {
-        int mid = (l + r) >> 1;
-        bool res = sim(mid);
-        // assert(its--);
-        // db(l); db(r); db(mid); db(res); dbln;
-
-        if (res)
-            l = mid + 1, ans = mid;
-        else
-            r = mid - 1;
+    repi(1, n + 1)
+        scan(val[i]);
+    
+    // dp
+    memset(dp, 0x3f, sizeof dp);
+    dp[1][0][1] = val[1] != 0;
+    repi(1, n + 1) {
+        repj(0, n + 1) {
+            repk(1, n + 1) {
+                if (j == 0) // new breakout
+                    rep(l, 0, n + 1)
+                        mina(dp[i][j][k], dp[i - 1][l][k - 1] + (val[i] != 0));
+                else // continue from last breakout
+                    mina(dp[i][j][k], dp[i - 1][j - 1][k] + (val[i] != j));
+                
+                // db(i); db(j); db(k); db(dp[i][j][k]); db(val[i]); dbln;
+            }
+        }
     }
 
-    // output
-    println(ans);
-    if (n == 500)
-        db(sim(251)), dbln;
+    // tally up
+    repi(1, n + 1) {
+        int best = INF;
+        repj(0, n + 1)
+            mina(best, dp[n][j][i]);
+        println(best);
+    }
 
     return 0;
 }
