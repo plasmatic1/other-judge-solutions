@@ -21,6 +21,7 @@ Solutions from judges/problem sets other than the DM::OJ
 List of unfinished problems and links to their statements so they can be tracked
 
 - `2019 feb gold/dishes.cpp`
+- `wlmoj/lcc19c4s4.cpp`
 
 # Notes
 
