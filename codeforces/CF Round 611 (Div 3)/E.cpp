@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,50 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
+const int MN = 2e5 + 10;
+int N,
+    val[MN], cnt[MN];
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
+// dp stuff
+int dp[MN][8], dp2[MN][8];
 
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
-}
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
+    scan(N);
+    repi(1, N + 1) {
+        scan(val[i]);
+        cnt[val[i]]++;
+    }
+
+    // dp
+    memset(dp2, 0x3f, sizeof dp2);
+    dp2[0][0] = 0;
+    repi(1, N + 1) {
+        repj(0, 8) {
+            repk(0, 8) {
+                if (cnt[i] && !j) continue; // have to have at least one set
+                // (j << 1) has to contain all bits of k that are in the state
+                if (!bool(j & 2) && bool(k & 4)) continue;
+                if (!bool(j & 1) && bool(k & 2)) continue;
+
+                // check is this valid?
+                int req = ((j << 1) | k) ^ k, preq = popcount(req);
+                // db(i); dbbin(req, 3), dbbin((j << 1), 4), dbbin(k, 4); db(dp2[i - 1][k]); dbln;
+                if (preq <= cnt[i]) {
+                    maxa(dp[i][j], dp[i - 1][k] + preq);
+                    mina(dp2[i][j], dp2[i - 1][k] + preq);
+                }
             }
+            // db(i); dbbin(j, 3); db(dp2[i][j]); dbln;
         }
     }
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
-
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    int mxans, mnans;
+    mxans = *max_element(dp[N], dp[N] + 8);
+    mnans = *min_element(dp2[N], dp2[N] + 8);
+    println(mnans, mxans);
 
     return 0;
 }

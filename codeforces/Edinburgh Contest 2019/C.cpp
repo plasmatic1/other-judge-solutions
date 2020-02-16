@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,44 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
+ll req(ll start, ll maxdiv) {
+    ll ret = 0;
+    while (start > 0) {
+        ll div = min(start, maxdiv);
+        ret += start / div;
+        start %= div;
+    }
+    return ret;
 }
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
+ll A, D;
 
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
-}
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
-            }
-        }
+    scan(A, D);
+    ll steps = D / A, rem = D % A;
+
+    if (rem == 0) {
+        println(A);
+        return 0;
     }
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
+    ll l = 0, r = 1e9 + 1;
+    // int it=100;
+    while (l + 1 < r) {
+        int mid = (l + r) / 2;
+        // assert(it--);
+        // db(l); db(r); db(rem); db(mid); db(steps); db(req(rem, mid)); dbln;
+        if (req(rem, mid) <= steps)
+            r = mid;
+        else
+            l = mid;
+    }
 
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    // db(l); db(r); dbln;
+    println(A + r);
 
     return 0;
 }

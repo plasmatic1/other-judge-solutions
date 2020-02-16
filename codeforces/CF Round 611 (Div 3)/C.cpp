@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,54 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
-
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
-}
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
-            }
-        }
+    int N;
+    scan(N);
+
+    vi to(N + 1);
+    vi indeg(N + 1);
+    repi(1, N + 1) {
+        scan(to[i]);
+        indeg[to[i]]++;
     }
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
+    vec<int> indeg0, outdeg0, nothing;
+    repi(1, N + 1) {
+        if (!indeg[i] && !to[i])
+            nothing.pb(i);
+        else if (!indeg[i])
+            indeg0.pb(i);
+        else if (!to[i])
+            outdeg0.pb(i);
+    }
 
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    if (nothing.size() >= size_t(2)) {
+        int sz = nothing.size();
+        repi(0, sz - 1)
+            to[nothing[i]] = nothing[i + 1];
+        to[nothing.back()] = nothing[0];
+    }
+    else if (nothing.size() == 1) {
+        to[nothing[0]] = indeg0.back();
+        indeg0.pop_back();
+        indeg0.pb(nothing[0]);
+    }
+    // db(nothing); dbln;
+
+    for (int val : outdeg0) {
+        // db(val); db(indeg0); dbln;
+        int toval = indeg0.back(); 
+        indeg0.pop_back();
+        to[val] = toval;
+    }
+
+    repi(1, N + 1)
+        print(to[i], ' ');
+    print('\n');
 
     return 0;
 }
+

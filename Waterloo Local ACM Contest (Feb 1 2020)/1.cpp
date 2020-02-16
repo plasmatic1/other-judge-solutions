@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,148 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
+const int MN = 21;
+int T, R, C;
+char igrid[MN][MN], ogrid[MN][MN];
+struct cell {
+    int type; // 0 -> soil, 1 -> Soil+grass, 2 -> Soil+carcass
+    int wait;
+} grid[MN][MN];
+map<pii, int> animals[2]; // 0 -> sheep, 1 -> wolf
+
+void runTurn() {
+    // move animals
+    map<pii, int> mv;
+    for (auto x : animals[0]) {
+        auto pos = x.first;
+        if (pos.first == R - 1) pos.first = 0;
+        else pos.first++;
+        mv[pos] = x.second - 1;
+    }
+    animals[0] = mv;
+    mv.clear();
+    for (auto x : animals[1]) {
+        auto pos = x.first;
+        if (pos.second == C - 1) pos.second = 0;
+        else pos.second++;
+        mv[pos] = x.second - 1;
+    }
+    animals[1] = mv;
+
+    // eat
+    for (auto &x : animals[1]) {
+        auto pos = x.first;
+        auto sp = animals[0].find(pos);
+        if (sp != animals[0].end()) {
+            x.second = 10;
+            animals[0].erase(sp);
+            grid[pos.first][pos.second] = cell{2, -1};
+        }
+    }
+    for (auto &x : animals[0]) {
+        auto pos = x.first;
+        auto &c = grid[pos.first][pos.second];
+        if (c.type == 1) {
+            c = cell{0, 4};
+            x.second = 5;
+        }
+    }
+
+    // dying
+    repi(0, 2) {
+        vec<pii> rem;
+        for (auto &x : animals[i]) {
+            if (x.second == 0)
+                rem.pb(x.first);
+        }
+        for (auto pos : rem) {
+            animals[i].erase(animals[i].find(pos));
+            grid[pos.first][pos.second] = cell{2, -1};
+        }
+    }
 }
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
+void updLand() {
+    repi(0, R) {
+        repj(0, C) {
+            auto &c = grid[i][j];
+            if (c.type == 0) {
+                c.wait--;
+                if (!c.wait) {
+                    c.wait = -1;
+                    c.type = 1;
+                }
+            }
+        }
+    }
 }
 
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
+void outputGrid() {
+    memset(ogrid, 0, sizeof ogrid);
+    for (auto p : animals[0])
+        ogrid[p.first.first][p.first.second] = 'S';
+    for (auto p : animals[1])
+        ogrid[p.first.first][p.first.second] = 'W';
+    repi(0, R) {
+        repj(0, C) {
+            if (!ogrid[i][j]) {
+                switch (grid[i][j].type) {
+                    case 0:
+                    ogrid[i][j] = '.';
+                    break;
+                    case 1:
+                    ogrid[i][j] = '#';
+                    break;
+                    case 2:
+                    ogrid[i][j] = '*';
+                    break;
+                }
+            }
+        }
+    }
+    repi(0, R) {
+        repj(0, C)
+            print(ogrid[i][j]);
+        print('\n');
+    }
 }
 
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
+    scan(T, R, C);
+    repi(0, R)
+        scan(igrid[i]);
+    repi(0, R) {
+        repj(0, C) {
+            switch (igrid[i][j]) {
+                case '.':
+                grid[i][j] = {0, 3};
+                break;
+
+                case 'W':
+                grid[i][j] = {0, 3};
+                animals[1][mpr(i, j)] = 10;
+                break;
+                
+                case 'S':
+                grid[i][j] = {0, 3};
+                animals[0][mpr(i, j)] = 5;
                 break;
             }
         }
     }
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
-
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    // do
+    repi(0, T) {
+        // outputGrid();
+        runTurn();
+        updLand();
+        // println("---");
+    }
+    
+    outputGrid();
 
     return 0;
 }

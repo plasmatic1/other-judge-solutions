@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,120 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
+const int MN = 2e5 + 1;
+int N;
+string s;
+template <int MAX>
+struct UnionFind{
+    int n, set[MAX];
+    void init(int n0) { n = n0; for (int i = 0; i <= n; i++) set[i] = i; }
+    int root(int v) { return set[v] == v ? v : set[v] = root(set[v]); }
+    void merge(int v, int w) { 
+        int rv = root(v), rw = root(w);
+        set[min(rv, rw)] = max(rv, rw);
+    }
+    bool intersect(int v, int w) { return root(v) == root(w); }
+};
+UnionFind<MN> uf;
+
+int perm[MN];
+
+void pperm() {
+    repi(1, N + 1)
+        print(perm[i], ' ');
+    print('\n');
 }
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
+void solve() {
+    int mxstart = N, mnstart = 1;
+    for (auto ch : s) {
+        if (ch == '>') mnstart++;
+        else if (ch == '<') mxstart--;
+    }
+    int start = mxstart;
 
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
+    uf.init(N);
+    repi(1, N - 1) {
+        if (s[i] == s[i - 1])
+            uf.merge(i - 1, i);
+    }
 
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
+    // part 1....
+    fill(perm, perm + N + 1, 0);
+    int cur = N;
+    repi(2, N + 1) {
+        if (s[i - 2] == '<') {
+            int to = uf.root(i - 2), actual = i - 2;
+            int req = to - actual + 1, st = cur - req + 1;
+            // db(i); db(to); db(req); db(st); dbln;
+            repj(i, i + req)
+                perm[j] = st++;
+            i = to + 2;
+            cur -= req;
+        }
+    }
+    perm[1] = start;
+
+    // dbarr(perm, N + 1); dbln;
+
+    cur = start - 1;
+    repi(2, N + 1) {
+        if (!perm[i])
+            perm[i] = cur--;
+    }
+
+    // print
+    pperm();
+
+    // part 2....
+    fill(perm, perm + N + 1, 0);
+    
+    // int cl = mxstart, cr = N;
+    // print(cl, ' ');
+    // repi(2, N + 1) {
+    //     if (s[i - 2] == '>') {
+    //         cl--;
+    //         print(cl, ' ');
+    //     }
+    //     else {
+    //         print(cr, ' ');
+    //         cr--;
+    //     }
+    // }
+    // print('\n');
+
+    int L = 1, R = N;
+    repi(1, N) {
+        if (s[i - 1] == '>')
+            perm[i] = R--;
+        else if (s[i - 1] == '<')
+            perm[i] = L++;
+    }
+    if (s[N - 2] == '<')
+        perm[N] = L++;
+    else
+        perm[N] = R--;
+    
+    pperm();
+
+    // canuse.clear();
+    // repi(1, N + 1)
+    //     canuse.insert(i);
+    // canuse.erase(mnstart);
 }
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
-            }
-        }
+    int T; cin >> T;
+    while (T--) {
+        // Input
+        scan(N, s);
+
+        // Reset
+        
+
+        solve();
     }
-
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
-
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
-
-    return 0;
 }

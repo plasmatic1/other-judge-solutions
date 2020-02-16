@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,76 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
+const int MN = 1e5 + 1;
+int n, q, l,
+    len[MN];
+bool over[MN];
+set<pii> seg;
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
-}
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
-
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
+void append(int x) {
+    auto nxt = seg.upper_bound({x, -1});
+    if (nxt != seg.end()) {
+        if (x + 1 == nxt->first) {
+            if (nxt != seg.begin()) {
+                auto pre = nxt; pre--;
+                if (pre->second == x - 1) {
+                    pii newv = {pre->first, nxt->second};
+                    seg.erase(pre);
+                    seg.erase(nxt);
+                    seg.insert(newv);
+                    return;
+                }
             }
+
+            pii newv = {x, nxt->second};
+            seg.erase(nxt);
+            seg.insert(newv);
+            return;
+        }
+    }
+    if (nxt != seg.begin()) {
+        auto pre = nxt; pre--;
+        if (pre->second == x - 1) {
+            pii newv = {pre->first, x};
+            seg.erase(pre);
+            seg.insert(newv);
+            return;
         }
     }
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
+    seg.insert({x, x});
+}
 
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    scan(n, q, l);
+    repi(1, n + 1) {
+        scan(len[i]);
+        if (len[i] > l) {
+            append(i);
+            over[i] = true;
         }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
+    }
+    
+    while (q--) {
+        int T; scan(T);
+        if (T == 0)
+            println(seg.size());
+        else {
+            int idx, v; scan(idx, v);
+            len[idx] += v;
+            if (len[idx] > l && !over[idx]) {
+                append(idx);
+                over[idx] = true;
             }
+
+            // db(T); db(idx); db(v); dbln;
+            // for (auto s:seg)
+            //     dbp("s", s.first, s.second), dbln;
         }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    }
 
     return 0;
 }

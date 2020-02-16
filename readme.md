@@ -20,7 +20,11 @@ Solutions from judges/problem sets other than the DM::OJ
 
 List of unfinished problems and links to their statements so they can be tracked
 
-- `2019 feb gold/dishes.cpp`
+- `codeforces/CF Round 611/F.cpp`
+- `codeforces/CF Round 620/F2.cpp`
+- `codeforces/Edinburgh Contest 2019/E.cpp`
+- `usaco/2019 feb gold/dishes.cpp`
+- `usaco training/ariprog.cpp`
 - `wlmoj/lcc19c4s4.cpp`
 
 # Notes
@@ -30,3 +34,7 @@ Things to be noted for some of the solutions
 ## USACO
 
 Not all problems use the USACO style file I/O, some use `stdin`/`stdout`
+
+## Codeforces
+
+There is a `misc` folder that exists for problems that were done alone (not done with other problems in the same contest). 

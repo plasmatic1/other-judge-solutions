@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,87 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
+const int MN = 1e5 + 1, LG = 17;
+int N, Q,
+    lv[MN], par[LG][MN];
+vi g[MN];
+void dfs(int c, int p, int clv) {
+    lv[c] = clv;
+    par[0][c] = p;
+    for (auto to : g[c])
+        if (to ^ p)
+            dfs(to, c, clv + 1);
 }
-
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
-}
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
-
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
-            }
+void init() {
+    dfs(1, -1, 0);
+    repi(1, LG) {
+        repj(1, N + 1) {
+            int pp = par[i - 1][j];
+            par[i][j] = pp == -1 ? -1 : par[i - 1][pp];
         }
     }
+}
+int lca(int a, int b) {
+    if (a == b) return a;
+    if (lv[a] > lv[b]) swap(a, b);
+    int delta = lv[b] - lv[a];
+    repi(0, LG)
+        if ((delta >> i) & 1)
+            b = par[i][b];
+    if (a == b) return a;
+    reprev(i, LG - 1, -1) {
+        if (par[i][a] != par[i][b]) {
+            a = par[i][a];
+            b = par[i][b];
+        }
+    }
+    return par[0][a];
+}
+int qdis(int a, int b) {
+    // db(a); db(b); db(dis[a]); db(dis[b]); db(lca(a, b)); db(dis[lca(a, b)]); dbln;
+    return lv[a] + lv[b] - 2 * lv[lca(a, b)];
+}
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
 
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
+    scan(N);
+    repi(1, N) {
+        int a, b;
+        scan(a, b);
+        g[a].pb(b);
+        g[b].pb(a);
+    }
+    init();
+
+    scan(Q);
+    while (Q--) {
+        int x, y, a, b;
+        ll k;
+        scan(x, y, a, b, k);
+
+        int d1 = qdis(a, b), d2 = min(qdis(a, x) + qdis(y, b), qdis(a, y) + qdis(x, b)) + 1;
+        bool p1 = d1 & 1, p2 = d2 & 1;
+
+        // db(x); db(y); db(a); db(b); db(k); dbln;
+        // db(d1); db(d2); db(p1); db(p2); dba("pk", k & 1); dbln;
+
+        if (p1 == p2) {
+            bool pk = k & 1;
+            if (min(d1, d2) <= k && pk == p1)
+                println("YES");
+            else
+                println("NO");
         }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
+        else {
+            bool pk = k & 1;
+            if ((d1 <= k && pk == p1) || (d2 <= k && pk == p2))
+                println("YES");
+            else
+                println("NO");
         }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    }
 
     return 0;
 }

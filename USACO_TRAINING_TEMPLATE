@@ -79,8 +79,8 @@ template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p
 
 template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
 #define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
+#define ri2(a, b) scn(int, a, b)
+#define ri3(a, b, c) scn(int, a, b, c)
 
 void init_file_io() {
     const string PROBLEM_ID = "PROBLEM_ID";

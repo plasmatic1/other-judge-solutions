@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,104 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
+const int MN = 51, MM = 2e4 + 10, MK = 21;
+int N, M, K;
+ll cnt[MN][MM], cntp[MN][MM], 
+    dp[MN][MM];
+
+ll seg[MM << 2], lazy[MM << 3];
+void push(int i) {
+    if (lazy[i]) {
+        seg[i] += lazy[i];
+        lazy[i << 1] += lazy[i];
+        lazy[i << 1 | 1] += lazy[i];
+        lazy[i] = 0;
+    }
+}
+ll _query(int i, int l, int r, int ql, int qr) {
+    if (l > qr || r < ql) return -LLINF;
+    push(i);
+    if (l >= ql && r <= qr) return seg[i];
+    int mid = (l + r) >> 1;
+    return max(_query(i << 1, l, mid, ql, qr), _query(i << 1 | 1, mid + 1, r, ql, qr));
+}
+ll _update(int i, int l, int r, int ql, int qr, ll v) {
+    push(i);
+    if (l > qr || r < ql) return seg[i];
+    if (l >= ql && r <= qr) {
+        lazy[i] += v;
+        push(i);
+        return seg[i];
+    }
+    int mid = (l + r) >> 1;
+    // db(i); db(l); db(mid); db(ql); db(qr); dbln;
+    return seg[i] = max(_update(i << 1, l, mid, ql, qr, v), _update(i << 1 | 1, mid + 1, r, ql, qr, v));
+}
+ll query(int L, int R) { return _query(1, 1, M, L, R); }
+void update(int L, int R, ll v) { _update(1, 1, M, L, R, v); }
+void reset() { memset(seg, 0, sizeof seg); memset(lazy, 0, sizeof lazy); }
+
+ll rsq(ll p[MM], int L, int R) {
+    return p[R] - p[L - 1];
 }
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
-}
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
+    scan(N, M, K);
+    repi(1, N + 1)
+        repj(1, M + 1)
+            scan(cnt[i][j]);
     
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
-            }
+    // init psum
+    repi(1, N + 1) {
+        copy(cnt[i], cnt[i] + M + 1, cntp[i]);
+        partial_sum(cntp[i], cntp[i] + M + 1, cntp[i]);
+    }
+
+    // dp
+    int end = M - K + 1;
+    repi(1, end + 1)
+        dp[1][i] = rsq(cntp[1], i, i + K - 1);
+    repi(2, N + 1) {
+        // init segtree 
+        reset();
+        repj(1, end + 1) {
+            ll val = dp[i - 1][j] + rsq(cntp[i], j, j + K - 1);
+            if (j > end - K)
+                val -= rsq(cntp[i], end, j + K - 1);
+            update(j, j, val);
+        }
+
+        // calculate dp
+        reprev(j, end, 0) {
+            dp[i][j] = query(1, j) + rsq(cntp[i], j, j + K - 1);
+            update(j - K, j - 1, -cnt[i][j]);
+        }
+
+        // init segtree again (backwards)
+        reset();
+        repj(1, end + 1) {
+            ll val = dp[i - 1][j] + rsq(cntp[i], j, j + K - 1);
+            if (j < K)
+                val -= rsq(cntp[i], j, K - 1);
+            update(j, j, val);
+        }
+
+        // calculate dp
+        repj(1, end + 1) {
+            maxa(dp[i][j], query(j, end) + rsq(cntp[i], j, j + K - 1));
+            update(j + 1, j + K, -cnt[i][j + K]);
+            db(i); db(j); db(dp[i][j]); dbln;
         }
     }
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
-
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    // get ans
+    ll ans = -LLINF;
+    repi(1, end + 1)
+        maxa(ans, dp[N][i]);
+    println(ans);
 
     return 0;
 }

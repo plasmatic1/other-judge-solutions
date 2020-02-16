@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,55 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
+// struct p {
+//     int mx, sz;
+//     Cmplt(p) { return mx == o.mx ? sz > o.sz : mx > o.mx; }
+// };
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
+template <int MAX>
+struct UnionFind{
+    int n, set[MAX];
+    void init(int n0) { n = n0; for (int i = 0; i <= n; i++) set[i] = i; }
+    int root(int v) { return set[v] == v ? v : set[v] = root(set[v]); }
+    void merge(int v, int w) { set[root(v)] = root(w); }
+    bool intersect(int v, int w) { return root(v) == root(w); }
+};
+const int MN = 2e5 + 1, MN2 = MN * 2;
+int N,  
+    val[MN];
+priority_queue<pii, vpi, greater<pii>> pq;
+UnionFind<MN2> dsu, up;
 
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
-}
-
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
-    
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
-            }
-        }
+    set<int> leaf;
+    repi(1, N + 1) {
+        leaf.insert(i);
     }
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
+    scan(N);
+    repi(1, N) {
+        scan(val[i]);
+        auto ptr = leaf.find(val[i]);
+        if (ptr != leaf.end()) leaf.erase(ptr);
+    }
+    dsu.init(MN2 - 1);
+    up.init(MN2 - 1);
 
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+    for (auto x : leaf)
+        pq.emplace(x, 1);
+
+    vpi ans;
+    reprev(i, N - 1, 0) {
+        int st = val[i];
+        
+    }
+
+    println(val[1]);
+    for (auto x : ans)
+        println(x.first, x.second);
 
     return 0;
 }

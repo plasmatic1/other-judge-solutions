@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,90 +64,86 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
+const ll MOD = 1e9 + 7;
+const int MN = 1e5 + 1, MK = 55, MK2 = 37, MK3 = 19;
+int N, K, M,
+    val[2][MN];
+ll dp[MN][MK2][MK3];
+
+void madd(ll &a, ll b) { a = (a + b) % MOD; }
+
+int solCount(int x, int y, int target) { // how many x+y=target 
+    if (x != -1 && y != -1) return x + y == target;
+    if (y != -1) swap(x, y); // x is always the defined
+    if (x != -1) return 0 <= target - x && target - x <= 9;
+    int tot = 0;
+    repi(0, 10) tot += 0 <= target - i && target - i <= 9;
+    return tot;
 }
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
+void recInitial(int r, int c, int tot1, int tot2, int tot3) {
+    if (r == 2) {
+        if (tot1 == K)
+            dp[2][tot2][tot3]++;
+        return;
+    }
 
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
+    int nr = r, nc = c + 1;
+    if (nc >= 3) nr++, nc = 0;
+    if (val[r][c] == -1) {
+        repi(0, 10)
+            recInitial(nr, nc, tot1 + i, tot2 + (c > 0) * i, tot3 + (c > 1) * i);
+    }
+    else {
+        int cval = val[r][c];
+        recInitial(nr, nc, tot1 + cval, tot2 + (c > 0) * cval, tot3 + (c > 1) * cval);
+    }
 }
 
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
+    memset(val, -1, sizeof val);
+    scan(N, K, M);
+    repi(0, M) {
+        int c, r, v;
+        scan(c, r, v);
+        val[r][c] = v;
+    }
     
-    vi nxt(N, -1);
-    repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
+    if (K >= MK) { // impossible
+        println(0);
+        return 0;
+    }
+
+    // brute force first three
+    recInitial(0, 0, 0, 0, 0);
+
+    // dp
+    repi(2, N - 1) {
+        repj(0, MK2) {
+            // precalc
+            int req = K - j, solc = solCount(val[0][i + 1], val[1][i + 1], req);
+            // db(i), db(j), db(req), dbln;
+
+            // loop
+            if (0 <= req && req <= 18) {
+                int en = min(j + 1, MK3);
+                repk(0, en) {
+                    if (!dp[i][j][k]) continue;
+                    // db(i); db(j); db(k); db(req); dba("v1", val[0][i + 1]); dba("v2", val[1][i + 1]); db(solc); db(k+req); db(req); db(dp[i][j][k]); dbln;
+                    madd(dp[i + 1][k + req][req], (dp[i][j][k] * solc) % MOD);
+                }
             }
         }
     }
-
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
-
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
-            }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
+    ll tot = 0;
+    repi(0, MK2) {
+        int en = min(i + 1, MK3);
+        repj(0, en)
+            madd(tot, dp[N - 1][i][j]); //, db(i), db(j), db(dp[N-1][i][j]), dbln;
+    }
     println(tot);
 
     return 0;

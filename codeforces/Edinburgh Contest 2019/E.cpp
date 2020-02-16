@@ -1,9 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: wormhole
-*/
-#pragma GCC optimize("Ofast")
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -70,91 +64,87 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
+struct Ship {
+    ll x, y, z, r;
+    ll dis(const Ship &o) {
+        ll xd = (x - o.x), yd = y - o.y, zd = z - o.z;
+        return xd * xd + yd * yd + zd * zd;
+    }
+};
+Inop(Ship) {
+    in >> o.x >> o.y >> o.z;
     return in;
 }
 
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
+const int MN = 101;
+int N;
+Ship ship[MN];
+vi g[MN];
 
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a) scn(int, a, b)
-#define ri3(a) scn(int, a, b, c)
-
-void init_file_io() {
-    const string wormhole = "wormhole";
-    freopen((wormhole + ".in").c_str(), "r", stdin);
-    freopen((wormhole + ".out").c_str(), "w", stdout);
+// dfs
+int edgec = 0, sz = 0;
+bool vis[MN];
+bool in[MN];
+void dfs(int c) {
+    if (vis[c]) return;
+    vis[c] = true;
+    in[c] = true;
+    sz++;
+    for (int to : g[c]) {
+        edgec++;
+        dfs(to);
+    }
 }
 
-int fact(int x) {
-    if (x <= 1) return 1;
-    return x * fact(x - 1);
-}
-
-
-int main() {
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
-
-    ri(N);
-    vpi p(N);
-    rdvec(p);
-    sort(all(p));
     
-    vi nxt(N, -1);
+    scan(N);
+    repi(0, N) scan(ship[i]);
     repi(0, N) {
-        repj(i + 1, N) {
-            if (p[i].second == p[j].second) {
-                nxt[i] = j;
-                break;
+        repj(0, N) {
+            ll d = ship[i].dis(ship[j]), combr = ship[i].r + ship[j].r;
+            if (d >= combr * combr) {
+                db(i); db(j); dbln;
+                g[i].pb(j);
             }
         }
     }
+    repi(0, N) {
+        if (vis[i]) continue;
+        edgec = 0;
+        sz = 0;
+        memset(in, false, sizeof in);
+        dfs(i);
 
-    // int end = (1 << N) - 1, tot = 0;
-    int tot = 0;
-    vi use(N), jmp(N);
-    function<bool(int)> noloop = [&] (int start) {
-        repi(0, 25) {
-            int to = nxt[start];
-            if (to == -1) return true;
-            start = jmp[to];
-        }
-        return false;
-    };
-
-    // uset<string> used;
-    function<void(int, int)> rec = [&] (int t, int st) {
-        if (t > N / 2) {
-            bool wk = false;
-            repi(0, N)
-                wk |= !noloop(i);
-            tot += wk;
-        //     db(use), dbln;
-            return;
-        }
-        repi(st, N) {
-            if (use[i]) continue;
-            repj(i + 1, N) {
-                if (use[j]) continue;
-                if (i == j) continue;
-                // db(t); db(i); db(j); db(use); dbln;
-                use[i] = t; use[j] = t;
-                jmp[i] = j; jmp[j] = i;
-                rec(t + 1, i + 1);
-                use[i] = 0; use[j] = 0;
+        if (edgec == sz * sz) { // valid
+            bool wk = true;
+            repj(0, N) {
+                if (!in[j]) {
+                    bool cwk = false;
+                    repk(0, N) {
+                        if (in[k]) {
+                            ll req = ship[j].dis(ship[k]) + ship[j].r * ship[j].r;
+                            cwk |= req <= (ship[k].r * ship[k].r * 9);
+                        }
+                    }
+                    
+                    wk &= cwk;
+                }
             }
-        }
-    };
-    rec(1, 0);
-    // tot /= fact(N / 2);
-    println(tot);
+            if (wk) {
+                println(sz);
+                repj(0, N)
+                    if (in[j])
+                        print(j + 1, ' ');
+                print('\n');
+                return 0;
+            }
+        } 
+    }
+
+    println("NO");
 
     return 0;
 }
