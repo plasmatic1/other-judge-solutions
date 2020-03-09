@@ -23,7 +23,7 @@ template<typename I> string intStr(I x) { string ret; while (x > 0) { ret += (x 
 #define finline __attribute__((always_inline))
 // Shorthand Function Macros
 #define sz(x) ((int)((x).size()))
-#define all(x) (x).begin(), (x).end()
+// #define all(x) (x).begin(), (x).end()
 #define rep(i, a, b) for (__typeof(a) i = a; i < b; i++)
 #define reprev(i, a, b) for (__typeof(a) i = a; i > b; i--)
 #define repi(a, b) rep(i, a, b)
@@ -65,35 +65,37 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #pragma endregion
 
 struct Ship {
+    int i;
     ll x, y, z, r;
-    ll dis(const Ship &o) {
-        ll xd = (x - o.x), yd = y - o.y, zd = z - o.z;
+    ll dis(const Ship &o) const {
+        ll xd = x - o.x, yd = y - o.y, zd = z - o.z;
         return xd * xd + yd * yd + zd * zd;
     }
+    Cmplt(Ship) { return r > o.r; }
 };
 Inop(Ship) {
-    in >> o.x >> o.y >> o.z;
+    in >> o.x >> o.y >> o.z >> o.r;
     return in;
 }
+
+/*
+Consider any two ships X and Y that intersect.  Assume without loss of generality that X.radius > Y.radius.
+
+If we take X and do not take Y, we will be OK as long as the new area can cover the point furthest away from X that is encompassed by Y.
+Let's assume the worst case, where Y is infinitesimally smaller than X and the intersection is infinitesimally small.  In this case, we can effectively treat
+X and Y as equal, and touching.  Looking at the configuration, it's obvious that the new radius that X needs to cover needs to be 2 * Y.radius = 2 * X.radius.
+If we triple the radius, this requirement is always satisfied.
+
+Thus, we can simply loop from largest to smallest ships, and whenever two ships intersect, take the larger ship and discard the smaller one.
+*/
 
 const int MN = 101;
 int N;
 Ship ship[MN];
-vi g[MN];
 
-// dfs
-int edgec = 0, sz = 0;
-bool vis[MN];
-bool in[MN];
-void dfs(int c) {
-    if (vis[c]) return;
-    vis[c] = true;
-    in[c] = true;
-    sz++;
-    for (int to : g[c]) {
-        edgec++;
-        dfs(to);
-    }
+bool intersect(const Ship &a, const Ship &b) {
+    ll d = a.dis(b), combr = a.r + b.r;
+    return d < combr * combr;
 }
 
 int main(){
@@ -101,50 +103,29 @@ int main(){
     cin.tie(NULL);
     
     scan(N);
-    repi(0, N) scan(ship[i]);
     repi(0, N) {
-        repj(0, N) {
-            ll d = ship[i].dis(ship[j]), combr = ship[i].r + ship[j].r;
-            if (d >= combr * combr) {
-                db(i); db(j); dbln;
-                g[i].pb(j);
-            }
+        scan(ship[i]);
+        ship[i].i = i + 1;
+    }
+    sort(ship, ship + N);
+
+    // greedy
+    vi ans;
+    bool done[N]; memset(done, false, sizeof done);
+    repi(0, N) {
+        if (done[i]) continue;
+        done[i] = true;
+        repj(i + 1, N) {
+            if (intersect(ship[i], ship[j]))
+                done[j] = true;
         }
-    }
-    repi(0, N) {
-        if (vis[i]) continue;
-        edgec = 0;
-        sz = 0;
-        memset(in, false, sizeof in);
-        dfs(i);
-
-        if (edgec == sz * sz) { // valid
-            bool wk = true;
-            repj(0, N) {
-                if (!in[j]) {
-                    bool cwk = false;
-                    repk(0, N) {
-                        if (in[k]) {
-                            ll req = ship[j].dis(ship[k]) + ship[j].r * ship[j].r;
-                            cwk |= req <= (ship[k].r * ship[k].r * 9);
-                        }
-                    }
-                    
-                    wk &= cwk;
-                }
-            }
-            if (wk) {
-                println(sz);
-                repj(0, N)
-                    if (in[j])
-                        print(j + 1, ' ');
-                print('\n');
-                return 0;
-            }
-        } 
+        ans.pb(ship[i].i);
     }
 
-    println("NO");
+    // output
+    println(ans.size());
+    for (auto x : ans) print(x, ' ');
+    print('\n');
 
     return 0;
 }

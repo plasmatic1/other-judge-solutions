@@ -1,0 +1,19 @@
+#!python3
+         
+from fractions import *
+p, q = map(int, input().split())
+n = int(input())
+a = list(map(int, (input().split())))
+         
+a = [0]+a;
+         
+ans = Fraction(a[n])
+for i in range(n-1, 0, -1):
+  ans = Fraction(1, ans)
+  ans += Fraction(a[i], 1)
+         
+         
+if Fraction(p, q) == ans:
+  print("YES")
+else:
+  print("NO")

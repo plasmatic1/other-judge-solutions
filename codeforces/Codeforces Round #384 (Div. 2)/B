@@ -1,0 +1,9 @@
+#include <bits/stdc++.h>
+using namespace std;
+int main() {
+    int n;
+    long long k;
+    cin >> n >> k;
+    
+    cout << (63 - __builtin_clzll(k & -k) + 1) << endl;
+}

@@ -1,0 +1,92 @@
+#include <bits/stdc++.h>
+
+using namespace std;
+
+typedef long long ll;
+
+// Defines and one-liners
+#define INF 0x3f3f3f3f
+#define LLINF 0x3f3f3f3f3f3f3f3f
+template <typename T> inline T& back(vector<T> &vec) { return *(vec.end() - 1); }
+template <typename T> inline void pop(vector<T> &vec) { return vec.erase(vec.end() - 1); }
+
+// Scan, Debug, and other nonsense
+template <typename T> ostream& operator<<(ostream& out,vector<T> iter){out<<"[";for(auto t:iter){out<<t<<", ";}out<<"]";return out;}
+template <typename T> void printArray(ostream& out,T* arr,int sz){out<<"[";for(int i=0;i<sz;i++){out<<arr[i]<<", "; } out<<"]";}
+#define OUT_OPERATOR(type, propa, propb) ostream& operator<<(ostream& out,type obj){out<<"("<<#propa<<"="<<obj. propa<<", "<<#propb<<"="<<obj. propb<<")";return out;}
+
+void scan(){}
+template<typename F, typename... R> void scan(F &f,R&... r){cin>>f;scan(r...);}
+int di_; string dnms_, co_ = ",";
+void debug_(){cout<<endl;}
+template<typename F, typename... R> void debug_(F f,R... r){while(dnms_[di_] != ',')cout<<dnms_[di_++];di_++;cout<<": "<<f<<",";debug_(r...);}
+#define debug(...) dnms_=#__VA_ARGS__+co_,di_=0,debug_(__VA_ARGS__)
+
+ll gcd(ll a, ll b) { return b ? gcd(b, a % b) : a; }
+
+
+int n,
+    disTo[10][10];
+string s;
+
+int main(){
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    scan(s);n = s.length();
+    
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < 10; j++) {
+            memset(disTo, 0x3f, sizeof disTo);
+
+            for (int k = 0; k < 10; k++) {
+                queue<int> nxt;
+                disTo[k][(k + i) % 10] = disTo[k][(k + j)%10]= 1;
+                nxt.push((k+i)%10);nxt.push((k+j)%10);
+
+                while (!nxt.empty()) {
+                    int cur = nxt.front(); nxt.pop(); int lv = disTo[k][cur];
+
+                    // static int ctr=20;
+                        // debug(i,j,k,cur);
+
+                    vector<int> adj = {(cur+i)%10,(cur+j)%10};
+                    for (int x : adj) {
+                        if (lv + 1 < disTo[k][x]) {
+                            disTo[k][x] = lv + 1;
+                            nxt.push(x);
+                        }
+                    }
+                }   
+            }
+
+            // debug(i,j);
+            // for (int k = 0; k < 10; k++) {
+            //     printArray(cout,disTo[k],10);cout<<"\n";
+            // }
+
+            ll tot = 0;
+            bool broke=false;
+            for (int k = 1; k < n; k++) {
+                int dc = s[k] - '0', dcp = s[k - 1]-'0';
+
+                // if(i==0&&j==1) {
+                //     debug(k,dc,dcp,disTo[dcp][dc]);
+                // }
+
+                if (disTo[dcp][dc] == INF) {
+                    broke = true;
+                    break;
+                }
+                else
+                    tot += disTo[dcp][dc] - 1;
+            }
+
+            if (broke) cout << "-1 ";
+            else cout << tot << " ";
+        }
+        cout << "\n";
+    }
+
+    return 0;
+}
