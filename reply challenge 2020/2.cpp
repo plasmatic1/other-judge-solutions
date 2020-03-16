@@ -1,8 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: ariprog
-*/
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -69,78 +64,46 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
+const int MN = 1e5 + 10;
+int N;
+ll P,
+    val[MN];
+
+void solve(int caseno) {
+    ll best = LLINF;
+    int l = 0, r = 0;
+    partial_sum(val, val + N + 1, val);
+    repi(0, N) {
+        ll target = val[i] + P;
+        auto ptr = lower_bound(val + i + 1, val + N + 1, target);
+        ll found = *ptr - val[i];
+        // db(i); db(target); db(found); db(*ptr); db(ptr - val); dbln;
+        if (found >= P && found < best) {
+            best = found;
+            l = i + 1;
+            r = ptr - val;
+        }
+    }
+    print("Case #", caseno, ": ", l - 1, ' ', r - 1, '\n');
 }
-
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a, b) scn(int, a, b)
-#define ri3(a, b, c) scn(int, a, b, c)
-
-void init_file_io() {
-    const string ariprog = "ariprog";
-    freopen((ariprog + ".in").c_str(), "r", stdin);
-    freopen((ariprog + ".out").c_str(), "w", stdout);
-}
-
-bitset<125001> b;
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri2(N, M);
-    vi v;
-    repi(0, M + 1) {
-        repj(0, M + 1) {
-            int x = i * i + j * j;
-            b[x] = true;
-            v.pb(x);
-        }
+    freopen("input-server-4c0f.txt", "r", stdin);
+    freopen("out", "w", stdout);
+
+    int T; cin >> T;
+
+    int caseno = 0;
+    while (T--) {
+        // Input
+        scan(N, P);
+        repi(1, N + 1) scan(val[i]);
+
+        // Reset
+
+        solve(++caseno);
     }
-    sort(all(v));
-    v.resize(unique(all(v))-v.begin());
-    int mx = M * M + M * M;
-
-    int lim = 10000;
-    vpi seq;
-    int sz = sz(v);
-    repi(0, sz) {
-        if (int(sz(seq))==lim)break;
-        repj(i + 1, sz) {
-            if (int(sz(seq))==lim)break;
-
-            int d = v[j] - v[i], cur = v[i];
-            bool wk = true;
-            repk(0, N-1) {
-                cur += d;
-                if (cur > mx) wk = false;
-                else wk &= b[cur];
-                if (!wk) break;
-            }
-
-            if (wk) {
-                seq.pb({d,v[i]});
-            }
-        }
-    }
-
-    if (seq.empty()) {
-        println("NONE");
-        return 0;
-    }
-
-    sort(all(seq));
-    for (auto p : seq)
-        println(p.second, p.first);
-
-    return 0;
 }

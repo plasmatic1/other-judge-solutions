@@ -1,8 +1,7 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: ariprog
-*/
+#pragma GCC optimize "Ofast"
+#pragma GCC optimize "unroll-loops"
+// #pragma GCC target "sse,sse2,sse3,sse4,abm,avx,mmx,popcnt,tune=native"
+
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -69,78 +68,144 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
-
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a, b) scn(int, a, b)
-#define ri3(a, b, c) scn(int, a, b, c)
-
 void init_file_io() {
-    const string ariprog = "ariprog";
-    freopen((ariprog + ".in").c_str(), "r", stdin);
-    freopen((ariprog + ".out").c_str(), "w", stdout);
+	const string PROBLEM_ID = "triangles";
+	freopen((PROBLEM_ID + ".in").c_str(), "r", stdin);
+	freopen((PROBLEM_ID + ".out").c_str(), "w", stdout);
 }
 
-bitset<125001> b;
+struct pt {
+	int x, y;
+	void rot45() {
+		x += y;
+		y = x - 2 * y;
+	}
+	void fix() {
+		x += 1;
+		y += 301;
+	}
+	int manhat(pt &o) {
+		return abs(x - o.x) + abs(y - o.y);
+	}
+	Cmplt(pt) {
+		return x == o.x ? y < o.y : x < o.x;
+	}
+};
+Outop(pt) {
+	out << "(" << o.x << ", " << o.y << ")";
+	return out;
+}
+
+const int MN = 301, MDIS = 600, MX = 605;
+int N,
+	psum[MX][MX];
+bool has[MX][MX];
+char grid[MN][MN];
+vec<pt> pts;
+
+finline int rsq(int r, int L, int R) {
+	return psum[r][R] - psum[r][L - 1];
+}
+
+finline bool check(int x, int y) {
+	if (x < 0 || x >= MX || y < 0 || y >= MX) return false;
+	return has[x][y];
+}
 
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
 #ifndef LOCAL
-    init_file_io();
+	init_file_io();
 #endif
 
-    ri2(N, M);
-    vi v;
-    repi(0, M + 1) {
-        repj(0, M + 1) {
-            int x = i * i + j * j;
-            b[x] = true;
-            v.pb(x);
-        }
-    }
-    sort(all(v));
-    v.resize(unique(all(v))-v.begin());
-    int mx = M * M + M * M;
+	// take input
+	scan(N);
+	repi(0, N)
+		scan(grid[i]);
+	repi(0, N) {
+		repj(0, N) {
+			if (grid[i][j] == '*') {
+				pt p{i, j};
+				// db(p);
+				p.rot45(); p.fix();
+				// dblb("trans"); db(p); dbln;
+				pts.pb(p);
+			}
+		}
+	}
 
-    int lim = 10000;
-    vpi seq;
-    int sz = sz(v);
-    repi(0, sz) {
-        if (int(sz(seq))==lim)break;
-        repj(i + 1, sz) {
-            if (int(sz(seq))==lim)break;
+	// make psum
+	for (auto x : pts) {
+		// println(x.x,x.y);
+		psum[x.x][x.y]++;
+		has[x.x][x.y] = true;
+	}
+	repi(0, MX)
+		partial_sum(psum[i], psum[i] + MX, psum[i]);
 
-            int d = v[j] - v[i], cur = v[i];
-            bool wk = true;
-            repk(0, N-1) {
-                cur += d;
-                if (cur > mx) wk = false;
-                else wk &= b[cur];
-                if (!wk) break;
-            }
+	// count!!!
+	ll tot = 0;
+	rep(row, 1, MX) {
+		repi(1, MX) {
+			repj(i + 1, MX) {
+				if (has[row][i] && has[row][j]) {
+					int d = j - i, upRow = row - d, downRow = row + d;
+					if (upRow > 0)
+						tot += rsq(upRow, i, j);
+					if (downRow < MX)
+						tot += rsq(downRow, i, j);
+				}
+			}
+		}
+	}
 
-            if (wk) {
-                seq.pb({d,v[i]});
-            }
-        }
-    }
+	// make psum (again!!!) (but this time in other direction)
+	memset(psum, 0, sizeof psum);
+	memset(has, false, sizeof has);
+	for (auto x : pts) {
+		psum[x.y][x.x]++;
+		has[x.y][x.x] = true;
+	}
+	repi(0, MX)
+		partial_sum(psum[i], psum[i] + MX, psum[i]);
 
-    if (seq.empty()) {
-        println("NONE");
-        return 0;
-    }
+	// count!!!
+	rep(col, 1, MX) {
+		repi(1, MX) {
+			repj(i + 1, MX) {
+				if (has[col][i] && has[col][j]) {
+					int d = j - i, upCol = col - d, downCol = col + d;
+					if (upCol > 0)
+						tot += rsq(upCol, i, j);
+					if (downCol < MX)
+						tot += rsq(downCol, i, j);
+				}
+			}
+		}
+	}
 
-    sort(all(seq));
-    for (auto p : seq)
-        println(p.second, p.first);
+	// db(tot); dbln;
 
-    return 0;
+	// subtract duplicates
+	memset(has, false, sizeof has);
+	for (auto x : pts) {
+		has[x.x][x.y] = true;
+	}
+	repi(1, MX) {
+		repj(1, MX) {
+			if (!check(i, j)) continue;
+			repk(1, MX) {
+				if (k == i) continue;
+				if (!check(k, j)) continue;
+				int d = abs(k - i);
+				// db(i); db(j); db(k); db(d); db(j-d); db(j+d); dbln;
+				tot -= check(i, j - d);
+				tot -= check(i, j + d);
+			}
+		}
+	}
+
+	// db(tot); dbln;
+	println(tot);
 }

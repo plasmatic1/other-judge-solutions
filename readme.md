@@ -29,6 +29,10 @@ List of unfinished problems and links to their statements so they can be tracked
 
 Things to be noted for some of the solutions
 
+## Reply Challenge
+
+Since it was a team challenge, not all of the code is mine.  (i.e. P5 was a combination of all the team members)
+
 ## USACO
 
 Not all problems use the USACO style file I/O, some use `stdin`/`stdout`

@@ -1,8 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: ariprog
-*/
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -20,12 +15,10 @@ template<typename I> string intStr(I x) { string ret; while (x > 0) { ret += (x 
 #define INF 0x3f3f3f3f
 #define LLINF 0x3f3f3f3f3f3f3f3f
 #define mpr make_pair
-#define mtup make_tuple
 #define pb push_back
 #define popcount __builtin_popcount
 #define clz __builtin_clz
 #define ctz __builtin_ctz
-#define finline __attribute__((always_inline))
 // Shorthand Function Macros
 #define sz(x) ((int)((x).size()))
 #define all(x) (x).begin(), (x).end()
@@ -57,90 +50,132 @@ template<typename F, typename... R> inline void println(F f,R... r){cout<<f<<" "
 inline void print(){}
 template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(r...);}
 // Debugging
-#define db(x) cout << (#x) << ": " << (x) << ", "
-#define dblb(s) cout << "[" << (s) << "] "
-#define dba(alias, x) cout << (alias) << ": " << (x) << ", "
-template<typename F> inline string __generic_tostring(F f) { stringstream ss; ss << f; return ss.str(); }
-template<typename F> inline string __join_comma(F f) {return __generic_tostring(f);}
-template<typename F, typename... R> string __join_comma(F f, R... r) { return __generic_tostring(f) + ", " + __join_comma(r...); }
-#define dbp(alias, ...) cout << (alias) << ": (" << __join_comma(__VA_ARGS__) << "), "
+#define db(x) cout << (#x) << ": " << x << ", "
+#define dblb(s) cout << "[" << s << "] "
 #define dbbin(x, n) cout << (#x) << ": " << bitset<n>(x) << ", "
 #define dbarr(x, n) cout << (#x) << ": " << arrayStr((x), (n)) << ", "
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
-
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a, b) scn(int, a, b)
-#define ri3(a, b, c) scn(int, a, b, c)
-
 void init_file_io() {
-    const string ariprog = "ariprog";
-    freopen((ariprog + ".in").c_str(), "r", stdin);
-    freopen((ariprog + ".out").c_str(), "w", stdout);
+	const string PROBLEM_ID = "cave";
+	freopen((PROBLEM_ID + ".in").c_str(), "r", stdin);
+	freopen((PROBLEM_ID + ".out").c_str(), "w", stdout);
 }
 
-bitset<125001> b;
+const ll MOD = 1e9 + 7;
+const int MN = 1011, MNM = 1e6 + 1;
+int n, m;
+char grid[MN][MN];
 
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
+void madd(ll &a, ll b) { a = (a + b) % MOD; }
 
-    ri2(N, M);
-    vi v;
-    repi(0, M + 1) {
-        repj(0, M + 1) {
-            int x = i * i + j * j;
-            b[x] = true;
-            v.pb(x);
-        }
-    }
-    sort(all(v));
-    v.resize(unique(all(v))-v.begin());
-    int mx = M * M + M * M;
+// dsu
+inline int conv(int x, int y) { return y + x * m; }
+inline int getx(int v) { return v / m; }
+inline int gety(int v) { return v % m; }
+struct {
+	int dsu[MNM];
+	void init() { iota(dsu, dsu + MNM, 0); }
+	int rt(int x) { return dsu[x] == x ? x : dsu[x] = rt(dsu[x]); }
+	void merge(int x, int y) { 
+		x = rt(x); y = rt(y);
+		if (x > y) swap(x, y);
+		dsu[y] = x;
+	}
+} uf;
 
-    int lim = 10000;
-    vpi seq;
-    int sz = sz(v);
-    repi(0, sz) {
-        if (int(sz(seq))==lim)break;
-        repj(i + 1, sz) {
-            if (int(sz(seq))==lim)break;
+// tree stuff
+int par[MNM];
+vi g[MNM];
+ll dp[MNM];
 
-            int d = v[j] - v[i], cur = v[i];
-            bool wk = true;
-            repk(0, N-1) {
-                cur += d;
-                if (cur > mx) wk = false;
-                else wk &= b[cur];
-                if (!wk) break;
-            }
+void dfs(int c, int p) {
+	dp[c] = 1LL;
+	for (int to : g[c]) {
+		if (to ^ p) {
+			dfs(to, c);
+			dp[c] = (dp[c] * dp[to]) % MOD;
+		}
+	}
+	madd(dp[c], 1);
+}
 
-            if (wk) {
-                seq.pb({d,v[i]});
-            }
-        }
-    }
+int main(){
+	ios_base::sync_with_stdio(false);
+	cin.tie(NULL);
 
-    if (seq.empty()) {
-        println("NONE");
-        return 0;
-    }
+	// #ifndef LOCAL
+	// init_file_io();
+	// #endif
 
-    sort(all(seq));
-    for (auto p : seq)
-        println(p.second, p.first);
+	scan(n, m);
+	repi(0, n)
+		scan(grid[i]); //, dbarr(grid[i], m + 2), dbln;
+	
+	// dsu stuff
+	memset(par, -1, sizeof par);
+	uf.init();
+	reprev(i, n - 2, 0) {
+		// first merge l-r
+		repj(1, m - 1) {
+			if (grid[i][j] != '#') {
+				int cv = conv(i, j);
+				if (grid[i][j - 1] != '#')
+					uf.merge(cv, conv(i, j - 1));
+				if (grid[i][j + 1] != '#')
+					uf.merge(cv, conv(i, j + 1));
+			}
+		}
 
-    return 0;
+		// merge down
+		repj(1, m - 1) {
+			if (grid[i][j] != '#') {
+				int cv = conv(i, j);
+				
+				if (grid[i + 1][j] != '#') {
+					int cvAdj = conv(i + 1, j), adjRt = uf.rt(cvAdj);
+					uf.merge(cvAdj, cv);
+					int cRt = uf.rt(cv);
+					// dblb("valid down merge"); db(i); db(j); db(cv); db(cRt); db(cvAdj); db(adjRt); dbln;
+
+					if (adjRt != cRt) {
+						par[adjRt] = cRt;
+						g[cRt].pb(adjRt);
+					}
+				}
+			}
+		}
+
+		// fix nodes that have changed root 
+		repj(1, m - 1) {
+			if (grid[i][j] != '#') {
+				int cv = conv(i, j), cRt = uf.rt(cv);
+				if (cv != cRt) {
+					for (auto to : g[cv])
+						g[cRt].pb(to);
+					g[cv].clear();
+				}
+			}
+		}
+	}
+
+	// debug
+	// repi(0, n)
+	// 	repj(0, m)
+	// 		db(i), db(j), db(conv(i, j)), db(g[conv(i, j)]), dbln;
+
+	// count subtree subsets
+	ll tot = 1;
+	int nm = n * m;
+	repi(0, nm) {
+		if (grid[getx(i)][gety(i)] != '#' && uf.rt(i) == i) {
+			dfs(i, -1);
+			tot = (tot * dp[i]) % MOD;
+			// db(i); db(dp[i]); dbln;
+		}
+	}
+	println(tot);
+
+	return 0;
 }

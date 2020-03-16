@@ -1,7 +1,7 @@
 /*
 ID: moses1
 LANG: C++14
-TASK: ariprog
+TASK: milk3
 */
 #pragma region
 #include <bits/stdc++.h>
@@ -83,12 +83,12 @@ template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) sca
 #define ri3(a, b, c) scn(int, a, b, c)
 
 void init_file_io() {
-    const string ariprog = "ariprog";
-    freopen((ariprog + ".in").c_str(), "r", stdin);
-    freopen((ariprog + ".out").c_str(), "w", stdout);
+    const string milk3 = "milk3";
+    freopen((milk3 + ".in").c_str(), "r", stdin);
+    freopen((milk3 + ".out").c_str(), "w", stdout);
 }
 
-bitset<125001> b;
+bool v[30][30][30];
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -97,50 +97,39 @@ int main() {
     init_file_io();
 #endif
 
-    ri2(N, M);
-    vi v;
-    repi(0, M + 1) {
-        repj(0, M + 1) {
-            int x = i * i + j * j;
-            b[x] = true;
-            v.pb(x);
+    ri3(A, B, C);
+    memset(v,false,sizeof v);
+    function<void(int, int, int)> rec=[&](int a, int b, int c) {
+        if (v[a][b][c]) return;
+        v[a][b][c] = true;
+        int lim;
+        lim = min(a, B-b);
+        rec(a-lim,b+lim,c);
+        lim = min(b, A-a);
+        rec(a+lim,b-lim,c);
+
+        lim = min(b, C-c);
+        rec(a,b-lim,c+lim);
+        lim = min(c, B-b);
+        rec(a,b+lim,c-lim);
+
+        lim = min(a, C-c);
+        rec(a-lim,b,c+lim);
+        lim = min(c, A-a);
+        rec(a+lim,b,c-lim);
+    };
+    rec(0, 0, C);
+    vi p;
+    repi(0, B+1) {
+        repj(0, C+1) {
+            if (v[0][i][j])
+                p.pb(j);
         }
     }
-    sort(all(v));
-    v.resize(unique(all(v))-v.begin());
-    int mx = M * M + M * M;
-
-    int lim = 10000;
-    vpi seq;
-    int sz = sz(v);
-    repi(0, sz) {
-        if (int(sz(seq))==lim)break;
-        repj(i + 1, sz) {
-            if (int(sz(seq))==lim)break;
-
-            int d = v[j] - v[i], cur = v[i];
-            bool wk = true;
-            repk(0, N-1) {
-                cur += d;
-                if (cur > mx) wk = false;
-                else wk &= b[cur];
-                if (!wk) break;
-            }
-
-            if (wk) {
-                seq.pb({d,v[i]});
-            }
-        }
-    }
-
-    if (seq.empty()) {
-        println("NONE");
-        return 0;
-    }
-
-    sort(all(seq));
-    for (auto p : seq)
-        println(p.second, p.first);
+    sort(all(p)); p.resize(unique(all(p))-p.begin());
+    int sz=sz(p);
+    repi(0, sz-1)print(p[i], ' ');
+    println(p.back());
 
     return 0;
 }

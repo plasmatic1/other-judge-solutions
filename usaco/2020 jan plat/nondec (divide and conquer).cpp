@@ -1,8 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: ariprog
-*/
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -20,12 +15,10 @@ template<typename I> string intStr(I x) { string ret; while (x > 0) { ret += (x 
 #define INF 0x3f3f3f3f
 #define LLINF 0x3f3f3f3f3f3f3f3f
 #define mpr make_pair
-#define mtup make_tuple
 #define pb push_back
 #define popcount __builtin_popcount
 #define clz __builtin_clz
 #define ctz __builtin_ctz
-#define finline __attribute__((always_inline))
 // Shorthand Function Macros
 #define sz(x) ((int)((x).size()))
 #define all(x) (x).begin(), (x).end()
@@ -57,90 +50,120 @@ template<typename F, typename... R> inline void println(F f,R... r){cout<<f<<" "
 inline void print(){}
 template<typename F, typename... R> inline void print(F f,R... r){cout<<f;print(r...);}
 // Debugging
-#define db(x) cout << (#x) << ": " << (x) << ", "
-#define dblb(s) cout << "[" << (s) << "] "
-#define dba(alias, x) cout << (alias) << ": " << (x) << ", "
-template<typename F> inline string __generic_tostring(F f) { stringstream ss; ss << f; return ss.str(); }
-template<typename F> inline string __join_comma(F f) {return __generic_tostring(f);}
-template<typename F, typename... R> string __join_comma(F f, R... r) { return __generic_tostring(f) + ", " + __join_comma(r...); }
-#define dbp(alias, ...) cout << (alias) << ": (" << __join_comma(__VA_ARGS__) << "), "
+#define db(x) cout << (#x) << ": " << x << ", "
+#define dblb(s) cout << "[" << s << "] "
 #define dbbin(x, n) cout << (#x) << ": " << bitset<n>(x) << ", "
 #define dbarr(x, n) cout << (#x) << ": " << arrayStr((x), (n)) << ", "
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
-
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a, b) scn(int, a, b)
-#define ri3(a, b, c) scn(int, a, b, c)
-
 void init_file_io() {
-    const string ariprog = "ariprog";
-    freopen((ariprog + ".in").c_str(), "r", stdin);
-    freopen((ariprog + ".out").c_str(), "w", stdout);
+	const string PROBLEM_ID = "nondec";
+	freopen((PROBLEM_ID + ".in").c_str(), "r", stdin);
+	freopen((PROBLEM_ID + ".out").c_str(), "w", stdout);
 }
 
-bitset<125001> b;
+struct Qu {
+    int i, l, r;
+};
 
-int main() {
+const ll MOD = 1e9 + 7;
+const int MN = 50005, MQ = 200001, MK = 21;
+int n, k, q,
+    val[MN];
+Qu qus[MQ];
+
+ll madd(ll a, ll b) { return (a + b) % MOD; }
+ll msub(ll a, ll b) { return (a - b + MOD) % MOD; }
+ll mmul(ll a, ll b) { return (a * b) % MOD; }
+ll fpow(ll x, ll y) {
+    if (!y) return 1LL;
+    return mmul(fpow(mmul(x, x), y >> 1), (y & 1) ? x : 1LL);
+}
+ll mdiv(ll x, ll y) { return mmul(x, fpow(y, MOD - 2)); }
+
+void mulLeft(ll st[MK][MK], int val, ll en[MK][MK]) { // multiply by val matrix on the left
+    repi(0, k + 1)
+        copy(st[i], st[i] + k + 1, en[i]);
+    repi(0, k + 1) // all columns
+        repj(0, val + 1) // copy to row val
+            en[val][i] = madd(en[val][i], st[j][i]);
+}
+void mulRight(ll st[MK][MK], int val, ll en[MK][MK]) { // multiply by val matrix on the right
+    repi(0, k + 1)
+        copy(st[i], st[i] + k + 1, en[i]);
+    repi(0, val + 1) // copy column val to column i
+        repj(0, k + 1) // row
+            en[j][i] = madd(en[j][i], st[j][val]);
+}
+void assign(int val, ll en[MK][MK]) { // assign the val matrix to en
+    repi(0, k + 1) {
+        fill(en[i], en[i] + k + 1, 0);
+        en[i][i] = 1;
+    }
+    repi(0, val + 1) en[val][i]++;
+}
+void mulVec(ll mat[MK][MK], ll vec[MK]) { // vector-matrix multiplication
+    static ll sto[MK];
+    fill(sto, sto + k + 1, 0LL);
+    repi(0, k + 1)
+        repj(0, k + 1)
+            sto[i] = madd(sto[i], mmul(vec[j], mat[i][j]));
+    copy(sto, sto + k + 1, vec);
+}
+
+ll mat[MN][MK][MK];
+ll tmp[MK], ans[MQ];
+void solve(int l, int r, vec<Qu> qus) {
+    if (qus.empty()) return;
+    if (l == r) {
+        for (auto &q : qus)
+            ans[q.i] = 1LL;
+        return;
+    }
+
+    int mid = (l + r) / 2;
+    assign(val[mid], mat[mid]); assign(val[mid + 1], mat[mid + 1]);
+    repi(mid + 2, r + 1)
+        mulLeft(mat[i - 1], val[i], mat[i]);
+    reprev(i, mid - 1, l - 1)
+        mulRight(mat[i + 1], val[i], mat[i]);
+
+    vector<Qu> lhs, rhs;
+    for (auto qu : qus) {
+        if (qu.l <= mid && qu.r >= mid) {
+            fill(tmp, tmp + k + 1, 0); tmp[0] = 1LL;
+            mulVec(mat[qu.l], tmp);
+            if (qu.r > mid) mulVec(mat[qu.r], tmp);
+
+            repi(0, k + 1)
+                ans[qu.i] = madd(ans[qu.i], tmp[i]);
+        }
+        else if (qu.r < mid) lhs.pb(qu);
+        else if (qu.l > mid) rhs.pb(qu);
+    }
+
+    solve(l, mid, lhs); solve(mid + 1, r, rhs);
+}
+
+int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
-#ifndef LOCAL
-    init_file_io();
-#endif
 
-    ri2(N, M);
-    vi v;
-    repi(0, M + 1) {
-        repj(0, M + 1) {
-            int x = i * i + j * j;
-            b[x] = true;
-            v.pb(x);
-        }
-    }
-    sort(all(v));
-    v.resize(unique(all(v))-v.begin());
-    int mx = M * M + M * M;
-
-    int lim = 10000;
-    vpi seq;
-    int sz = sz(v);
-    repi(0, sz) {
-        if (int(sz(seq))==lim)break;
-        repj(i + 1, sz) {
-            if (int(sz(seq))==lim)break;
-
-            int d = v[j] - v[i], cur = v[i];
-            bool wk = true;
-            repk(0, N-1) {
-                cur += d;
-                if (cur > mx) wk = false;
-                else wk &= b[cur];
-                if (!wk) break;
-            }
-
-            if (wk) {
-                seq.pb({d,v[i]});
-            }
-        }
+    scan(n, k);
+    repi(1, n + 1) {
+        scan(val[i]); 
     }
 
-    if (seq.empty()) {
-        println("NONE");
-        return 0;
+    scan(q);
+    repi(0, q) {
+        scn(int, l, r);
+        qus[i] = {i, l, r};
     }
 
-    sort(all(seq));
-    for (auto p : seq)
-        println(p.second, p.first);
+    solve(1, n + 1, vec<Qu>(qus, qus + q));
+    repi(0, q)
+        println(ans[i]);
 
     return 0;
 }

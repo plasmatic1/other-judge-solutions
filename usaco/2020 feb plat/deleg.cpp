@@ -1,8 +1,3 @@
-/*
-ID: moses1
-LANG: C++14
-TASK: ariprog
-*/
 #pragma region
 #include <bits/stdc++.h>
 using namespace std;
@@ -69,26 +64,81 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
-template <typename T, typename U> istream& operator>>(istream& in, pair<T, U> &p) {
-    in >> p.first >> p.second;
-    return in;
-}
-
-#define repl(a, b) rep(l, a, b)
-#define repm(a, b) rep(m, a, b)
-
-template <typename T> void rdvec(vec<T> &v) { int sz = v.size(); repi(0, sz) scan(v[i]); }
-#define ri(a) scn(int, a)
-#define ri2(a, b) scn(int, a, b)
-#define ri3(a, b, c) scn(int, a, b, c)
-
 void init_file_io() {
-    const string ariprog = "ariprog";
-    freopen((ariprog + ".in").c_str(), "r", stdin);
-    freopen((ariprog + ".out").c_str(), "w", stdout);
+    const string PROBLEM_ID = "deleg";
+    freopen((PROBLEM_ID + ".in").c_str(), "r", stdin);
+    freopen((PROBLEM_ID + ".out").c_str(), "w", stdout);
 }
 
-bitset<125001> b;
+const int MN = 1e5 + 1;
+int N;
+vi g[MN];
+
+// dp stuff
+int dp[MN];
+bool dfs(int c, int p, int K) {
+    vi len;
+    for (int to : g[c]) {
+        if (to ^ p) {
+            if (!dfs(to, c, K))
+                return false;
+            len.pb(dp[to] + 1);
+        }
+    }
+    if (len.empty()) { // leaf
+        dp[c] = 0;
+        return true;
+    }
+
+    // dp stuff
+    sort(all(len));
+    multiset<int> lenSet(all(len));
+    int badc = 0, sz = len.size();
+    vpi pairs;
+    repi(0, sz) {
+        auto cptr = lenSet.find(len[i]);
+        if (cptr == lenSet.end()) continue; // skip, this one has already been removed
+        lenSet.erase(cptr);
+        // db(i); dbln;
+        
+        if (len[i] < K) {
+            auto ptr = lenSet.lower_bound(K - len[i]);
+            if (ptr == lenSet.end()) {
+                badc++;
+                if (badc >= 2) return false; // impossible
+                pairs.emplace_back(len[i], -1);
+            }
+            else {
+                pairs.emplace_back(len[i], *ptr);
+                lenSet.erase(ptr);
+            }
+        }
+        else
+            pairs.emplace_back(len[i], -1);
+    }
+
+    // set dp[c]
+    dp[c] = 0;
+    for (auto pp : pairs) {
+        if (pp.second == -1) { // single.  If badc>0, then there can't be any things that are >=K as they would've been matched up already
+            maxa(dp[c], pp.first);
+        }
+        else {
+            assert(pp.first <= pp.second); // always should be the case
+            if (badc == 0 && p != -1 && pp.second >= K) // can't do this if it's the root!.  Additionally, if badc>0, then that one must be taken, and this cannot be taken
+                maxa(dp[c], pp.first);
+        }
+    }
+
+    return true;
+}
+
+// check function
+bool works(int K) {
+    fill(dp, dp + N + 1, 0);
+    bool work = dfs(1, -1, K);
+    return work && (dp[1] == 0 || dp[1] >= K); // either everything is self contained or the one thing that's going up is >= K
+}
 
 int main() {
     ios_base::sync_with_stdio(false);
@@ -97,50 +147,26 @@ int main() {
     init_file_io();
 #endif
 
-    ri2(N, M);
-    vi v;
-    repi(0, M + 1) {
-        repj(0, M + 1) {
-            int x = i * i + j * j;
-            b[x] = true;
-            v.pb(x);
-        }
+    scan(N);
+    repi(1, N) {
+        int a, b;
+        scan(a, b);
+        g[a].pb(b);
+        g[b].pb(a);
+    }    
+
+    int l = 1, r = N + 1;
+    while (l + 1 < r) {
+        int mid = (l + r) / 2;
+        bool wk = works(mid);
+
+        if (wk)
+            l = mid;
+        else
+            r = mid;
     }
-    sort(all(v));
-    v.resize(unique(all(v))-v.begin());
-    int mx = M * M + M * M;
+    println(l);
 
-    int lim = 10000;
-    vpi seq;
-    int sz = sz(v);
-    repi(0, sz) {
-        if (int(sz(seq))==lim)break;
-        repj(i + 1, sz) {
-            if (int(sz(seq))==lim)break;
-
-            int d = v[j] - v[i], cur = v[i];
-            bool wk = true;
-            repk(0, N-1) {
-                cur += d;
-                if (cur > mx) wk = false;
-                else wk &= b[cur];
-                if (!wk) break;
-            }
-
-            if (wk) {
-                seq.pb({d,v[i]});
-            }
-        }
-    }
-
-    if (seq.empty()) {
-        println("NONE");
-        return 0;
-    }
-
-    sort(all(seq));
-    for (auto p : seq)
-        println(p.second, p.first);
-
-    return 0;
+    // db(works(4)); dbln;
+    // dbarr(dp, N + 1); dbln;
 }
