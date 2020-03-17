@@ -64,26 +64,48 @@ template<typename F, typename... R> string __join_comma(F f, R... r) { return __
 #define dbln cout << endl;
 #pragma endregion
 
+const int MN = 1e5 + 1, MV = 1e6 + 1, MF = 7001;
+int N, M;
+bitset<MV> has;
+bitset<MF> dp;
+
 int main(){
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    int N;
     scan(N);
-    vec<int> v(N);
-    repi(0, N)
-        scan(v[i]);
-    sort(all(v), greater<int>());
-    int M;
+    repi(0, N) {
+        int v; scan(v);
+        has[v] = true;
+    }
+
     scan(M);
     repi(0, M) {
-        ll x;
-        scan(x);
-        repj(0, N) {
-            while (x % v[j] == 0)
-                x /= v[j];
+        ll x; scan(x);
+
+        vl fac;
+        for (ll j = 1; j * j <= x; j++) {
+            if (x % j == 0) {
+                fac.pb(j);
+                if (j * j != x) fac.pb(x / j);
+            }
         }
-        print(x == 1);
+        sort(all(fac));
+
+        int sz = sz(fac);
+        dp.reset(); dp[0] = true;
+        repi(1, sz) {
+            repj(0, i) {
+                if (fac[i] % fac[j] != 0) continue;
+                ll div = fac[i] / fac[j];
+                if (div >= MV) continue;
+
+                if (has[div])
+                    dp[i] = dp[i] | dp[j];
+            }
+        }
+
+        print(dp[sz - 1]);
     }
     print('\n');
 

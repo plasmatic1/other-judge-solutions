@@ -88,6 +88,7 @@ int main(){
         scan(A[i], B[i]);
         deg[A[i]]++;
         deg[B[i]]++;
+        if (A[i] > B[i]) swap(A[i], B[i]);
     }
     repi(0, M) {
         int a = A[i], b = B[i];

@@ -22,8 +22,6 @@ List of unfinished problems and links to their statements so they can be tracked
 
 - `codeforces/CF Round 611/F.cpp`
 - `usaco/2019 feb gold/dishes.cpp`
-- `usaco training/ariprog.cpp`
-- `wlmoj/lcc19c4s4.cpp`
 
 # Notes
 
