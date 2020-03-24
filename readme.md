@@ -11,6 +11,7 @@ Solutions from judges/problem sets other than the DM::OJ
 - `olympiads school`: Private problems on the [DM::OJ](https://dmoj.ca)
 - `projecteuler`: [project euler](https://projecteuler.net)
 - `spoj`: [spoj](https://www.spoj.com/)
+- `topcoder`: [topcoder arena](https://arena.topcoder.com/#/u/dashboard)
 - `usaco`: [usaco](http://www.usaco.org/index.php?page=contests)
 - `usaco training`: [usaco training](https://train.usaco.org/usacogate)
 - `wcipeg`: [wcipeg](https://wcipeg.com)
