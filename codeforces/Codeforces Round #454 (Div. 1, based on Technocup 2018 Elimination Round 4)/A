@@ -1,0 +1,14 @@
+import sys
+input=sys.stdin.readline
+A=ord('a')
+left=set([chr(i+A) for i in range(26)])
+bad=0
+q=int(input())
+for i in range(q-1):
+    op,s = input().split()
+    bad += len(left)==1and op!='.'
+    if op=='!':
+        left=left&set(s)
+    else:
+        left=left-set(s)
+print(bad)
