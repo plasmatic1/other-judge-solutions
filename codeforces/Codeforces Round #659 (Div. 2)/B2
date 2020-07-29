@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// b2-koa-and-the-beach-hard-version.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,44 +29,57 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
+const int MN = 3e5 + 1;
+int N;
+ll K, L,
+   D[MN], canR[MN], canL[MN];
+bool full[MN];
 
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
-
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
+void solve() {
+    for (auto i = 0; i < N; i++) {
+        if (D[i] > L) {
+            cout << ("No") << '\n';
+            return;
+        }
+        if (D[i] + K <= L)
+            full[i] = true;
+        else {
+            canL[i] = 2 * K - (L - D[i]);
+            canR[i] = (L - D[i]) + 2 * K;
         }
     }
 
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+    ll cur = canL[0];
+    for (auto i = 1; i < N; i++) {
+        // cout<<"i="<<(i)<<", "; cout<<"cur="<<(cur)<<", "; cout<<"canL[i]="<<(canL[i])<<", "; cout<<"canR[i]="<<(canR[i])<<", "; cout << endl; // db i,cur,canL[i],canR[i]
+        if (full[i])
+            cur = 0;
+        else {
+            cur = max(cur + 1, canL[i]);
+            if (cur > canR[i]) {
+                cout << ("No") << '\n';
+                return;
+            }
+        }
+    }
 
-    return 0;
+    cout << ("Yes") << '\n';
 }
 
+int main() {
+    int T;
+    cin >> T;
+    while (T--) {
+        // Input
+        cin >> (N) >> (K) >> (L);
+        for (auto i = 0; i < N; i++)
+            cin >> (D[i]);
+        
+        solve();
+
+        // Reset
+        fill(full, full + N, false);
+        fill(canL, canL + N, 0);
+        fill(canR, canR + N, 0);
+    }
+}

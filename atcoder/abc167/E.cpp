@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// e-colorful-blocks.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,43 +29,43 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
+const ll MOD = 998244353;
+ll madd(ll a, ll b, ll mod = MOD) { return (a + b) % mod; }
+ll msub(ll a, ll b, ll mod = MOD) { return (a - b + mod) % mod; }
+ll mmul(ll a, ll b, ll mod = MOD) { return (a * b) % mod; }
+ll fpow(ll x, ll y, ll mod = MOD) {
+    if (!y) return 1LL;
+    return mmul(fpow(mmul(x, x, mod), y >> 1, mod), (y & 1) ? x : 1LL, mod);
+}
+ll mdiv(ll x, ll y, ll mod = MOD) { return mmul(x, fpow(y, mod - 2, mod), mod); }
+vector<ll> fact, invf;
+void init_nchooser(int MN) {
+    fact.resize(MN + 1); invf.resize(MN + 1);
+    fact[0] = invf[0] = 1LL;
+    for (int i = 1; i <= MN; i++) {
+        fact[i] = mmul(fact[i - 1], i);
+        invf[i] = mdiv(1, fact[i]);
+    }
+}
+ll choose(ll N, ll K) { return mmul(fact[N], mmul(invf[K], invf[N - K])); }
+ll permute(ll N, ll K) { return mmul(fact[N], invf[N - K]); }
+
+const int MN = 2e5 + 1;
+int N, M, K;
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
+    cin >> (N) >> (M) >> (K);
+    init_nchooser(N);
 
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
-        }
+    ll ans = 0;
+    for (auto i = 0; i <= K; i++) {
+        ll cur = mmul(mmul(M, fpow(M - 1, N - (i + 1))), choose(N - 1, i));
+        ans = madd(ans, cur);
     }
-
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+    cout << (ans) << '\n';
 
     return 0;
 }

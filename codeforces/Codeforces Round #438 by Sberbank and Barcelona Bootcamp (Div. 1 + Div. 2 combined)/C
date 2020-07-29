@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// c-qualification-rounds.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,43 +29,35 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
+const int MN = 1e5 + 1;
+int N, K,
+    cnt[16];
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
+    cin >> (N) >> (K);
+    for (auto i = 0; i < N; i++) {
+        int m = 0;
+        for (auto j = 0; j < K; j++) {
+            int x;
+            cin >> x;
+            m = (m << 1) | x;
+        }
+        cnt[m]++;
+    }
 
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
+    for (auto i = 0; i < 16; i++) {
+        for (auto j = 0; j < 16; j++) {
+            if (cnt[i] && cnt[j] && (i & j) == 0) {
+                cout << ("YES") << '\n';
+                return 0;
+            }
         }
     }
 
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+    cout << ("NO") << '\n';
 
     return 0;
 }

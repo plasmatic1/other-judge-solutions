@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// b-gamegame.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,44 +29,48 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
+const int MN = 1e5 + 1, LG = 31;
+int N;
+ll val[MN];
 
-int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
-
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
-
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
+void solve() {
+    vector<ll> cnt(LG);
+    for (auto i = 0; i < N; i++) {
         for (auto j = 0; j < LG; j++)
             if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
+                cnt[j]++;
+    }
+    ll fs = 0, sn = 0;
+    for (auto i = 0; i < LG; i++) {
+        if (cnt[i] % 2) {
+            int n0 = N - cnt[i];
+            int d = (cnt[i] + 1) / 2;
+            if (d % 2 == 0) {
+                if (n0 % 2) fs |= 1LL << i;
+                else sn |= 1LL << i;
+            }
+            else fs |= 1LL << i;
         }
     }
-
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
-
-    return 0;
+    if (fs > sn)
+        cout << ("WIN") << '\n';
+    else if (fs == sn)
+        cout << ("DRAW") << '\n';
+    else
+        cout << ("LOSE") << '\n';
 }
 
+int main() {
+    int T;
+    cin >> T;
+    while (T--) {
+        // Input
+        cin >> (N);
+        for (auto i = 0; i < N; i++)
+            cin >> (val[i]);
+        
+        solve();
+
+        // Reset
+    }
+}

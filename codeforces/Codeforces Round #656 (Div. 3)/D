@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// d-a-good-string.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,43 +29,35 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
+int let(char c) { return c - 'a'; }
+
+const int MN = 2e5 + 1;
 int N,
-    val[MN], lst[LG];
+    dp[MN][26];
+string s;
+
+int solve(int l, int r, int clet) {
+    if (l == r) return let(s[l]) != clet;
+    int mid = (l + r) / 2, lcost = 0, rcost = 0;
+    for (auto i = l; i <= mid; i++) lcost += let(s[i]) != clet;
+    for (auto i = mid + 1; i <= r; i++) rcost += let(s[i]) != clet;
+    // cout<<"l="<<(l)<<", "; cout<<"r="<<(r)<<", "; cout<<"clet="<<(clet)<<", "; cout<<"mid="<<(mid)<<", "; cout<<"lcost="<<(lcost)<<", "; cout<<"rcost="<<(rcost)<<", "; cout << endl; // db l,r,clet,mid,lcost,rcost
+    int res = min(solve(l, mid, clet + 1) + rcost, solve(mid + 1, r, clet + 1) + lcost);
+    // cout<<"res="<<(res)<<", "; cout << endl; // db res
+    return res;
+}
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
-
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
-        }
+    int T;
+    cin >> T;
+    while (T--) {
+        cin >> (N) >> (s);
+        int ans = solve(0, N - 1, 0);
+        cout << (ans) << '\n';
     }
-
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
 
     return 0;
 }

@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// b-race-against-time.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,43 +29,31 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
-
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
+    int h, m, s, t1, t2;
+    cin >> h >> m >> s >> t1 >> t2;
 
-    vector<int> pres;
+    vector<pair<int, bool>> ts;
+    ts.emplace_back(h * 3600 + m * 60 + s, false);
+    ts.emplace_back((m * 720 + s * 12) , false);
+    ts.emplace_back((s * 720), false);
+    ts.emplace_back(t1 * 3600, true);
+    ts.emplace_back(t2 * 3600, true);
 
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
+    sort(all(ts));
 
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
+    for (auto i = 0; i < 5; i++) {
+        int n = (i + 1) % 5;
+        if (ts[i].second && ts[n].second) {
+            cout << ("YES") << '\n';
+            return 0;
         }
     }
-
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+    
+    cout << ("NO") << '\n';
 
     return 0;
 }

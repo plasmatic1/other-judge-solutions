@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// f-yet-another-minimization-problem.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,43 +29,65 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
+const int MN = 1e5 + 1, MK = 21;
+int N, K;
+ll val[MN], dp[MK][MN];
+
+// track pairs that are same
+int cqid = 0, cl = 1, cr = 0, qid[MN];
+ll ccost = 0, cnt[MN];
+void reset() { cqid++; ccost = 0; cl = 1; cr = 0; }
+ll& get(int x) {
+    if (qid[x] != cqid) { qid[x] = cqid; cnt[x] = 0; }
+    return cnt[x];
+}
+void ins(int x) {
+    ccost += get(x)++; }
+void rem(int x) {
+    ccost -= --get(x); }
+void move(int l, int r) {
+    // Extend right
+    while (cr < r) ins(val[++cr]); // ins new value
+    while (cl < l) rem(val[cl++]); // rem old value
+    // Extend left
+    while (cl > l) ins(val[--cl]); // ins new value
+    while (cr > r) rem(val[cr--]); // rem old value
+}
+
+// assume [dr, l] has already been filled
+void solve(int row, int dl, int dr, int l, int r) {
+    if (l > r) return;
+    int besti = -1, mid = (l + r) / 2;
+    ll bestv = LLINF;
+    for (auto i = min(mid - 1, dr); i >= dl; i--) {
+        move(i + 1, mid);
+        ll alt = dp[row - 1][i] + ccost;
+        if (alt < bestv) {
+            bestv = alt;
+            besti = i;
+            dp[row][mid] = alt;
+        }
+    }
+
+    solve(row, besti, dr, mid + 1, r); // right before left
+    solve(row, dl, besti, l, mid - 1);
+}
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
+    cin >> (N) >> (K);
     for (auto i = 1; i <= N; i++)
         cin >> (val[i]);
 
-    vector<int> pres;
+    for (auto i = 0; i <= K; i++) {
+        fill(dp[i] + 1, dp[i] + N + 1, LLINF); }
 
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
+    for (auto i = 1; i <= K; i++) {
+        solve(i, 0, N, 1, N); }
 
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
-        }
-    }
-
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+    cout << (dp[K][N]) << '\n';
 
     return 0;
 }

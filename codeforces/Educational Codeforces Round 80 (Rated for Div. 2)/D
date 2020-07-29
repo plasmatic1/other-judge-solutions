@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// d-minimax-problem.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -24,48 +24,61 @@ struct chash { ll operator()(ll x) const { return x ^ RANDOM; } };
 template <typename T, class Hash> using hashset = gp_hash_table<T, null_type, Hash>;
 template <typename K, typename V, class Hash> using hashmap = gp_hash_table<K, V, Hash>;
 // More utilities
+int SZ(string &v) { return v.length(); }
 template <typename C> int SZ(C &v) { return v.size(); }
 template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
+const int MN = 3e5 + 1, MM = 9;
+int N, M,
+    val[MN][MM];
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
-
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
+    cin >> (N) >> (M);
+    for (auto i = 0; i < N; i++)
+        for (auto j = 0; j < M; j++)
+            cin >> (val[i][j]);
+    auto check = [&] (int req) -> pair<int, int> {
+        vector<pair<int, bool>> av(1 << M);
+        for (auto i = 0; i < N; i++) {
+            int msk = 0;
+            for (auto j = M-1; j >= 0; j--)
+                msk = (msk << 1) | (val[i][j] >= req);
+            av[msk] = {i, true};
         }
+        int msub = 1 << M;
+        for (auto i = msub-1; i >= 0; i--) {
+            if (av[i].second) {
+                int j = i;
+                do {
+                    j = (j - 1) & i;
+                    av[j] = av[i];
+                } while (j);
+            }
+        }
+        for (auto i = 0; i < N; i++) {
+            int msk = 0;
+            for (auto j = M-1; j >= 0; j--)
+                msk = (msk << 1) | (val[i][j] < req);
+            if (av[msk].second)
+                return {i, av[msk].first};
+        }
+        return {-1, -1};
+    };
+    int l = 0, r = INF;
+    while (l + 1 < r) {
+        int mid = (l + r) / 2;
+        if (check(mid) != mpr(-1, -1))
+            l = mid;
+        else
+            r = mid;
     }
-
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+    auto ans = check(l);
+    cout << (ans.first+1) << ' ' << (ans.second+1) << '\n';
 
     return 0;
 }

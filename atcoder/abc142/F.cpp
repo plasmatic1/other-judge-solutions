@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// f-pure.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,43 +29,56 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
-int N,
-    val[MN], lst[LG];
+const int MN = 1001, MM = 2001;
+int N, M,
+    A[MM], B[MM];
+vector<int> g[MN];
+
+int len = INF;
+vector<int> ans;
+int dis[MN], par[MN];
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
+    cin >> (N) >> (M);
+    for (auto i = 0; i < M; i++) {
+        int a, b;
+        cin >> a >> b;
+        g[a].pb(b);
+        A[i] = a; B[i] = b;
+    }
 
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
+    for (auto i = 0; i < M; i++) {
+        memset(dis, 0x3f, sizeof dis);
+        queue<int> q;
+        q.push(B[i]); dis[B[i]] = 0; par[B[i]] = -1;
+        while (!q.empty()) {
+            int c = q.front(), cdis = dis[c]; q.pop();
+            for (int to : g[c]) {
+                if (dis[to] == INF) {
+                    dis[to] = cdis + 1;
+                    par[to] = c;
+                    q.push(to);
+                }
+            }
+        }
+        if (dis[A[i]] + 1 < len) {
+            len = dis[A[i]] + 1;
+            ans.clear();
+            for (int c = A[i]; c != -1; c = par[c])
+                ans.pb(c);
         }
     }
 
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+    if (len == INF)
+        cout << (-1) << '\n';
+    else {
+        cout << (len) << '\n';
+        for (auto x : ans)
+            cout << (x) << '\n';
+    }
 
     return 0;
 }

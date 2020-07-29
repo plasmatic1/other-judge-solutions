@@ -1,4 +1,4 @@
-// a-the-brand-new-function.yml
+// b-unmerge.yml
 #include "bits/stdc++.h"
 using namespace std;
 
@@ -29,43 +29,44 @@ template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
 template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
 const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
 
-const int MN = 1e5 + 1, LG = 21;
+const int MN = 4001;
 int N,
-    val[MN], lst[LG];
+    val[MN];
+bool dp[MN];
 
 int main() {
     ios_base::sync_with_stdio(false);
     cin.tie(NULL);
 
-    cin >> (N);
-    for (auto i = 1; i <= N; i++)
-        cin >> (val[i]);
+    int T;
+    cin >> T;
+    while (T--) {
+        cin >> (N); N *= 2;
+        for (auto i = 1; i <= N; i++)
+            cin >> (val[i]);
 
-    vector<int> pres;
-
-    memset(lst, -1, sizeof lst);
-    for (auto i = 1; i <= N; i++) {
-        if (!val[i]) pres.pb(0);
-
-        for (auto j = 0; j < LG; j++)
-            if ((val[i] >> j) & 1)
-                lst[j] = i;
-        map<int, vector<int>, greater<int>> bits;
-        for (auto j = 0; j < LG; j++)
-            bits[lst[j]].pb(j);
-
-        int cur = 0;
-        for (auto &p : bits) {
-            if (p.first == -1) break;
-            for (auto &x : p.second)
-                cur |= 1 << x;
-            pres.pb(cur);
+        int half = N / 2;
+        deque<int> dq;
+        for (auto i = N; i >= 1; i--) {
+            while (!dq.empty() && val[dq.back()] < val[i])
+                dq.pop_back();
+            dq.pb(i);
         }
-    }
+        // cout << "dq=["; for (auto x:dq)cout<<x<<", "; cout<<"], "; cout << endl; // db I:dq
 
-    sort(all(pres));
-    pres.resize(unique(all(pres)) - pres.begin());
-    cout << (SZ(pres)) << '\n';
+        fill(dp, dp + N + 1, false);
+        dp[0] = true;
+        int pre = N + 1;
+        while (!dq.empty()) {
+            int tp = dq.front(), sz = pre - tp; dq.pop_front();
+            // cout<<"tp="<<(tp)<<", "; cout<<"sz="<<(sz)<<", "; cout << endl; // db tp,sz
+            for (auto i = N; i >= sz; i--)
+                dp[i] |= dp[i - sz];
+            pre = tp;
+        }
+
+        cout << (dp[half] ? "YES" : "NO") << '\n';
+    }
 
     return 0;
 }
