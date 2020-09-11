@@ -1,0 +1,48 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      5
+      2
+      YY
+      YY
+      2
+      NY
+      YY
+      2
+      NN
+      YY
+      5
+      YNNYY
+      YYYNY
+      10
+      NYYYNNYYYY
+      YYNYYNYYNY
+    out: |
+      Case #1: 
+      YY
+      YY
+      Case #2: 
+      YY
+      NY
+      Case #3: 
+      YN
+      NY
+      Case #4: 
+      YNNNN
+      YYNNN
+      NNYYN
+      NNNYN
+      NNNYY
+      Case #5: 
+      YYYNNNNNNN
+      NYYNNNNNNN
+      NNYNNNNNNN
+      NNYYNNNNNN
+      NNYYYNNNNN
+      NNNNNYNNNN
+      NNNNNNYYYN
+      NNNNNNYYYN
+      NNNNNNNNYN
+      NNNNNNNNYY
+

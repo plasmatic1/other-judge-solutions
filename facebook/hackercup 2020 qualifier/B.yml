@@ -1,0 +1,25 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      6
+      3
+      BAB
+      3
+      BBB
+      5
+      AABBA
+      7
+      BAAABAA
+      11
+      BBBAABAAAAB
+      11
+      BABBBABBABB
+    out: |
+      Case #1: Y
+      Case #2: N
+      Case #3: Y
+      Case #4: N
+      Case #5: Y
+      Case #6: N
+
