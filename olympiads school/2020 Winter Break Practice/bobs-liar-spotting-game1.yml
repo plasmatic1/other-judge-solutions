@@ -1,0 +1,21 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      8
+      5
+      3 4 odd
+      1 2 even
+      5 6 even
+      1 6 even
+      1 5 odd
+    out: |
+      3
+  - in: |
+      8
+      3
+      1 7 odd
+      1 2 even
+      5 6 even
+    out: |
+      3

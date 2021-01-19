@@ -1,0 +1,12 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      A 100 correct
+      B 110 incorrect
+      B 111 correct
+      C 300 correct
+      D 333 incorrect
+      -
+    out: |
+      3 531

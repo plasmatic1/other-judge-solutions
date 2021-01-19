@@ -1,0 +1,27 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      4
+      42
+      12
+      30
+      10
+    out: |
+      3 12
+      3 5
+      3 13
+      7 2
+  - in: |
+      5
+      1
+      5040
+      1150
+      92
+      2310
+    out: |
+      1 0
+      41 47
+      43 12
+      41 4
+      INFINITY

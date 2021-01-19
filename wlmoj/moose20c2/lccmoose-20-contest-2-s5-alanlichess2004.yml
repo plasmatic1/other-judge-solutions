@@ -1,0 +1,15 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      2 0 0
+    out: |
+      8
+  - in: |
+      6 -3 -9
+    out: |
+      7200
+  - in: |
+      2 -1 1
+    out: |
+      2

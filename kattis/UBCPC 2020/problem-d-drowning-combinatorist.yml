@@ -1,0 +1,19 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      1 7 1000000007
+    out: |
+      1
+  - in: |
+      3 2 1000000007
+    out: |
+      4
+  - in: |
+      9 3 1000000009
+    out: |
+      224458
+  - in: |
+      2000 7 1000000007
+    out: |
+      foo

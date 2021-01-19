@@ -1,0 +1,13 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      3
+      3 8
+    out: |
+      14
+  - in: |
+      5
+      3 10 3 2
+    out: |
+      13

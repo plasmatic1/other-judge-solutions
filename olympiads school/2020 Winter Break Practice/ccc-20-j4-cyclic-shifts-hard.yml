@@ -1,0 +1,13 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      ABCCDEABAA
+      ABCDE
+    out: |
+      yes
+  - in: |
+      ABCDDEBCAB
+      ABA
+    out: |
+      no
