@@ -22,7 +22,6 @@ Solutions from judges/problem sets other than the DM::OJ
 List of unfinished problems and links to their statements so they can be tracked
 
 - `codeforces/CF Round 611/F.cpp`
-- `usaco/2019 feb gold/dishes.cpp`
 
 # Notes
 
@@ -41,3 +40,7 @@ Not all problems use the USACO style file I/O, some use `stdin`/`stdout`
 Codeforces submissions should be updated with the command `get-submissions -h Plasmatic; get-submissions -h zey_zey_chen`
 
 If `get-submissions` is not found, run `npm i -g get-submissions`
+
+## WLMOJ
+
+The moose20 contests were done as a team as well.

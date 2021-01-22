@@ -1,3 +1,8 @@
+# WLMOJ
+wlmoj/settings_main.json
+wlmoj/settings_moose19.json
+wlmoj/settings_moose20.json
+
 # Input and Output Files
 inputs.txt
 *.in
