@@ -1,6 +1,6 @@
 # Props
 main = 'Plasmatic'
-alts = ['zey_zey_chen', 'chad_master_13221']
+alts = ['thinking_space', 'wasureta', 'kenos']
 
 # Update codeforces submissions
 puts "Getting codeforces submissions..."

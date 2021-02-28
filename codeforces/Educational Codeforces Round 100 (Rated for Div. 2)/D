@@ -1,0 +1,141 @@
+// ./d-pairs.yml
+#include "bits/stdc++.h"
+using namespace std;
+
+// Defines
+#define fs first
+#define sn second
+#define pb push_back
+#define eb emplace_back
+#define mpr make_pair
+#define mtp make_tuple
+#define all(x) (x).begin(), (x).end()
+// Basic type definitions
+using ll = long long; using ull = unsigned long long; using ld = long double;
+using pii = pair<int, int>; using pll = pair<long long, long long>;
+#ifdef __GNUG__
+// PBDS order statistic tree
+#include <ext/pb_ds/assoc_container.hpp> // Common file 
+#include <ext/pb_ds/tree_policy.hpp>
+using namespace __gnu_pbds; 
+template <typename T, class comp = less<T>> using os_tree = tree<T, null_type, comp, rb_tree_tag, tree_order_statistics_node_update>;
+template <typename K, typename V, class comp = less<K>> using treemap = tree<K, V, comp, rb_tree_tag, tree_order_statistics_node_update>;
+// HashSet
+#include <ext/pb_ds/assoc_container.hpp>
+template <typename T, class Hash> using hashset = gp_hash_table<T, null_type, Hash>;
+template <typename K, typename V, class Hash> using hashmap = gp_hash_table<K, V, Hash>;
+const ll RANDOM = chrono::high_resolution_clock::now().time_since_epoch().count();
+struct chash { ll operator()(ll x) const { return x ^ RANDOM; } };
+#endif
+// More utilities
+int SZ(string &v) { return v.length(); }
+template <typename C> int SZ(C &v) { return v.size(); }
+template <typename C> void UNIQUE(vector<C> &v) { sort(v.begin(), v.end()); v.resize(unique(v.begin(), v.end()) - v.begin()); }
+template <typename T, typename U> void maxa(T &a, U b) { a = max(a, b); }
+template <typename T, typename U> void mina(T &a, U b) { a = min(a, b); }
+const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
+
+const int MN = 2e5 + 1, MN2 = MN * 2;
+int N,
+    val[MN];
+
+#define MID int mid = (l + r) / 2, lhs = i + 1, rhs = i + (mid - l + 1) * 2;
+struct seg {
+    int N;
+    vector<int> seg, lazy;
+    void init(int _N) { N = _N;
+        seg.assign(2*N+1, 0);
+        lazy.assign(2*N+1, 0);
+    }
+    void push(int i, int l, int r) {
+        if (lazy[i] != 0) {
+            seg[i] += lazy[i];
+            if (l != r) {
+                MID;
+                lazy[lhs] += lazy[i];
+                lazy[rhs] += lazy[i];
+            }
+            lazy[i] = 0;
+        }
+    }
+    int _update(int ql, int qr, int qv, int i, int l, int r) {
+        push(i, l, r);
+        if (ql > r || qr < l) return seg[i];
+        if (l >= ql && r <= qr) {
+            lazy[i] = qv;
+            push(i, l, r);
+            return seg[i];
+        }
+        MID;
+        return seg[i] = min(_update(ql, qr, qv, lhs, l, mid), _update(ql, qr, qv, rhs, mid + 1, r));
+    }
+    int _query(int ql, int qr, int i, int l, int r) {
+        if (ql > r || qr < l) return INF;
+        push(i, l, r);
+        if (l >= ql && r <= qr) return seg[i];
+        MID;
+        return min(_query(ql, qr, lhs, l, mid), _query(ql, qr, rhs, mid + 1, r));
+    }
+    void update(int l, int r, int v) { _update(l, r, v, 1, 1, N); }
+    int query(int l, int r) { return _query(l, r, 1, 1, N); }
+    int get() { return query(1, N); }
+};
+
+void solve() {
+    cin >> (N);
+    set<int> us;
+    for (auto i = 0; i < N; i++) {
+        cin >> (val[i]);
+        us.insert(val[i]);
+    }
+    vector<int> notin;
+    for (auto i = 1; i <= 2*N; i++)
+        if (!us.count(i))
+            notin.pb(i);
+
+    // cout << "notin=["; for (auto __x:notin)cout<<__x<<", "; cout<<"], "; cout << endl; // db I:notin
+
+    int ans = 0;
+    seg t1, t2;
+    t1.init(2*N); t2.init(2*N);
+    // build for x=0
+    for (auto i = 0; i < N; i++) {
+        t2.update(1, val[i], 1);
+        t2.update(1, notin[i], -1);
+    }
+    // check x=0 case
+    ans += t1.get() >= 0 && t2.get() >= 0;
+
+    // x=1..N
+    for (auto i = 0; i < N; i++) {
+        t1.update(val[i], t1.N, 1);
+        t1.update(notin[N-i-1], t1.N, -1);
+
+        t2.update(1, val[i], -1);
+        t2.update(1, notin[N-i-1], 1);
+        // for (auto j = 1; j <= 2*N; j++) {
+        //     cout<<"j="<<(j)<<", "; cout<<"t2.query(j,j)="<<(t2.query(j,j))<<", "; cout << endl; // db j,t2.query(j,j)
+        // }
+
+        // cout<<"i="<<(i)<<", "; cout<<"val[i]="<<(val[i])<<", "; cout<<"t1.get()="<<(t1.get())<<", "; cout<<"t2.get()="<<(t2.get())<<", "; cout << endl; // db i,val[i],t1.get(),t2.get()
+
+        ans += t1.get() >= 0 && t2.get() >= 0;
+    }
+
+    cout << (ans) << '\n';
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int T;
+    cin >> T;
+    while (T--) {
+        // Input
+        
+        solve();
+
+        // Reset
+    }
+}
