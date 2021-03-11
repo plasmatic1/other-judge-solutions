@@ -2,6 +2,8 @@
 
 Solutions from judges/problem sets other than the DM::OJ
 
+List of online judge handles [here](https://mosesxu.ca/#footer)
+
 ## Judges by Folder
 
 - `atcoder`: [atcoder](https://atcoder.jp)
