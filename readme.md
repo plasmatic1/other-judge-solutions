@@ -19,12 +19,6 @@ List of online judge handles [here](https://mosesxu.ca/#footer)
 - `wcipeg`: [wcipeg](https://wcipeg.com)
 - `wlmoj`: [wlmoj/mcpt](https://judge.mcpt.ca)
 
-# Unfinished Problems
-
-List of unfinished problems and links to their statements so they can be tracked
-
-- `codeforces/CF Round 611/F.cpp`
-
 # Notes
 
 Things to be noted for some of the solutions
