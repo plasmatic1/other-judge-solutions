@@ -1,0 +1,120 @@
+#include <bits/stdc++.h>
+using namespace std;
+using ll = long long;
+const ll INF = 0x3f3f3f3f, LLINF = 0x3f3f3f3f3f3f3f3f;
+using pii = pair<int, int>;
+
+const int MN = 1e5 + 1, LG = 18;
+struct spt {
+    int N;
+    pii tb[LG][MN];
+    void init(int n0) {
+        N = n0;
+        for (auto i = 0; i < LG; i++)
+            for (auto j = 0; j < N; j++)
+                tb[i][j] = {INF, -1};
+    }
+    void set(int i, int v) {
+        tb[0][i] = {v, i};
+    }
+    void build() {
+        for (auto i = 1; i < LG; i++) {
+            int jmp = 1 << (i-1), end = N-(1<<i)+1;
+            for (auto j = 0; j < end; j++) {
+                tb[i][j] = min(tb[i-1][j], tb[i-1][j+jmp]);
+            }
+        }
+    }
+    pii query(int l, int r) {
+        int bit = __lg(r-l+1);
+        return min(tb[bit][l], tb[bit][r-(1<<bit)+1]);
+    }
+};
+
+int N, oddc, evenc;
+ll A[MN], odd[MN], even[MN];
+spt aq, oq, eq;
+
+ll helper(int l, int r, int shf, int tag, ll A[MN], spt &sp) {
+    // printf("helper call l=%d r=%d tag=%d\n", l,r,tag);
+    // if (l == r) {
+    //     printf("HELPER-tag%d eq l=r=%d shf=%d Av=%lld\n", tag,l,shf,A[l]);
+    //     fflush(stdout);
+    //     if (shf>A[l]) assert(0);
+    // }
+    if (l > r) return 0;
+    if (l == r) return A[l]-shf;
+
+    auto [v, idx] = sp.query(l, r);
+    // printf("HELPER-tag%d l=%d r=%d shf=%d FOUND v=%d idx=%d\n", tag,l,r,shf,v,idx); fflush(stdout);
+    return (ll)v-shf + helper(l, idx-1, v, tag, A, sp) + helper(idx+1, r, v, tag, A, sp);
+}
+
+ll solve(int l, int r, int shf) {
+    if (l > r) return 0;
+    if (l == r) return A[l]-shf;
+
+    auto [v, idx] = aq.query(l, r);
+    printf("solve l=%d r=%d shf=%d FOUND v=%d idx=%d\n", l,r,shf,v,idx); fflush(stdout);
+    ll basic = (ll)v-shf + solve(l, idx-1, v)+solve(idx+1, r, v), alt = v-shf;
+
+    int oddl = l, oddr = r;
+    if (oddl % 2) oddl++;
+    if (oddr % 2) oddr--;
+    // printf("oddl=%d oddr=%d\n", oddl/2,oddr/2);
+    alt += helper(oddl/2, oddr/2, v, 0, odd, oq);
+    // printf("oddAlt=%lld\n", alt);
+
+    int evenl = l-1, evenr = r-1;
+    if (evenl % 2) evenl++;
+    if (evenr % 2) evenr--;
+    // printf("evenl=%d evenr=%d\n", evenl/2,evenr/2);
+    alt += helper(evenl/2, evenr/2, v, 1, even, eq);
+    // printf("totAlt=%lld\n", alt);
+
+    printf("solve l=%d r=%d basic=%lld alt=%lld\n", l,r,basic,alt);
+    return min(basic, alt);
+}
+
+void _case() {
+    cin >> N;
+
+    oddc = 0;
+    evenc = 0;
+    for (auto i = 0; i < N; i++) {
+        cin >> A[i];
+        if (i & 1) even[evenc++] = A[i];
+        else odd[oddc++] = A[i];
+    }
+    // for (auto i = 0; i < N; i++) {
+    //     printf("i=%d\n",i);
+    //     printf("v=%lld\n", A[i]);
+    //     if (i<oddc) printf("oddv=%lld\n", odd[i]);
+    //     if (i<evenc) printf("evenv=%lld\n", even[i]);
+    // }
+
+    aq.init(N);
+    for (auto i = 0; i < N; i++) aq.set(i, A[i]);
+    aq.build();
+    oq.init(oddc);
+    for (auto i = 0; i < oddc; i++) oq.set(i, odd[i]);
+    oq.build();
+    eq.init(evenc);
+    for (auto i = 0; i < evenc; i++) eq.set(i, even[i]);
+    eq.build();
+
+    cout << solve(0, N-1, 0) << '\n';
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+
+    int _t; cin >> _t;
+    while (_t--) {
+        printf("case\n"); fflush(stdout);
+        _case();
+    }
+
+    return 0;
+}
