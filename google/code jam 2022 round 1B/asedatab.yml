@@ -1,0 +1,7 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      foo
+    out: |
+      bar

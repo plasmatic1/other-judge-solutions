@@ -1,0 +1,12 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      3
+      2
+      8
+      50
+    out: |
+      Case #1: 4
+      Case #2: 24
+      Case #3: 812

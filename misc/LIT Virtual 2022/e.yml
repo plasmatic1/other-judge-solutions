@@ -1,0 +1,46 @@
+#!cptools-run
+checker: tokens
+cases:
+  - in: |
+      3
+      bca
+      bca
+      acbebca
+      bca
+      cba
+      bca
+    out: |
+      1
+      2
+      1
+  - in: |
+      1
+      abcabcabcabcabc
+      abcabc
+    out: |
+      4
+  - in: |
+      1
+      aecbbac
+      abc
+    out: |
+      2
+  - in: |
+      1
+      cacccabbc
+      baaccc
+    out: |
+      1
+  - in: |
+      1
+      ccaaacac
+      cac
+    out: |
+      2
+  - in: |
+      1
+      abbcbcac
+      bbc
+    out: |
+      1
+ 
